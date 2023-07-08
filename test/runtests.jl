@@ -2,10 +2,13 @@ using Test
 ENV["JULIA_DEBUG"] = "LuxorLayout"
 
 function run_all_tests()
-    @testset "snap" begin
+    @testset "unit" begin
+        include("test_unit.jl")
+    end
+    @testset "line" begin
         include("test_line.jl")
     end
-    @testset "scale" begin
+    @testset "box" begin
         include("test_box.jl")
     end
 end
