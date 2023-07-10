@@ -36,7 +36,7 @@ poss = parse.(Float64, labels) * 10
 # So large padding that "20" won't fit:
 all_bbs = crash_padded_boundingboxes(labels, poss, 10)
 it, bbs = labels_prominent((x,y,z)->nothing, labels, poss, pris; crashpadding = 10)
-@test it = [1,6]
+@test it == [1,6]
 @test ! boundingboxesintersect(bbs[1], bbs[2])
 # Drop the context
 Luxor.finish()

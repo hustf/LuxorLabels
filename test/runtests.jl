@@ -1,5 +1,5 @@
 using Test
-ENV["JULIA_DEBUG"] = "LuxorLayout"
+ENV["JULIA_DEBUG"] = "LuxorLabels"
 
 function run_all_tests()
     @testset "unit" begin
