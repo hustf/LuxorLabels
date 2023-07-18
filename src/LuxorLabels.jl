@@ -1,10 +1,11 @@
 module LuxorLabels
 import Luxor
-using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point
+using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +
 export labels_prominent
 
 """
-    labels_prominent(f, labels::T1, poss::T2, pris::T3; crashpadding = 1.05) where {T1, T2, T3 <: Vector} \n
+    labels_prominent(f, labels, anchors, pris; crashpadding = 1.05, anchor = "left") \n
+    labels_prominent(f, labels, anchors::T, pris; crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number} \n
     --> selected_indexes, selected_padding_bounding_boxes
 
 `f` is user's label plotting function taking three variables:
@@ -14,13 +15,16 @@ export labels_prominent
     - `pri`
 
 `labels`        Strings to send to f one by one if selected
-'poss'          Positions to send to f one by one if selected. Elements should behave like Point, 
+'anchors'          Positions to send to f one by one if selected. Elements should behave like Point, 
                 but may well be points on a line.
-                If a vector of numbers, will be interpreted as horizontally distributed points: `Point.(poss, zero(eltype(poss)))` 
+                If a vector of numbers, will be interpreted as horizontally distributed points: `Point.(anchors, zero(eltype(anchors)))` 
 'pris'          Priorities. '1' is higher priority than '2'.
 'crashpadding'  Keyword argument, default 1.05. Increases bounding boxes around labels by this factor. 
                 Can also be given as a vector of individual scaling factor. 
                 Centre of the scaling is the centre of each bounding box.
+'anchor'        Keyword argument, default "left'". For right-aligning, set to "right", which means
+                that the bounding box is mirrored around the anchor point compared to the default. 
+                A right-aligned anchor point will be on the right lower edge of the bounding box.
 
 Intention:
 
@@ -43,43 +47,52 @@ Use case:
     - While displaying a map, prioritize showing capital cities over street names.
     - While displaying a train schedule, prioritize end stops.
 """
-function labels_prominent(f, labels, poss, pris; crashpadding = 1.05) #where {T1, T2, T3 <: Vector}
-    if ! (length(labels) == length(poss) == length(pris)) 
-        throw(ArgumentError("Vectors have unequal length: $(length(labels))  $(length(poss))  $(length(pris))"))
+function labels_prominent(f, labels, anchors, pris; 
+        crashpadding = 1.05, anchor = "left")
+    if ! (length(labels) == length(anchors) == length(pris)) 
+        throw(ArgumentError("Vectors have unequal length: $(length(labels))  $(length(anchors))  $(length(pris))"))
     end
     if length(crashpadding) !== 1 && length(scalefactor) !== length(labels)
-        throw(ArgumentError("Vectors have unequal length: $(length(labels))  $(length(poss))  $(length(pris)) $(length(crashpadding))"))
+        throw(ArgumentError("Vectors have unequal length: $(length(labels))  $(length(anchors))  $(length(pris)) $(length(crashpadding))"))
     end
+    @assert anchor == "left" || anchor == "right"
     # The boundingboxes of all placed and padded labels (were that possible).
     # Multiplication scales from the centre of the box.
     # Note that keyword `crashpadding` could also be a vector, for more detailed control.
-    bbs = crash_padded_boundingboxes(labels, poss, crashpadding)
+    bbs = crash_padded_boundingboxes(labels, anchors, crashpadding)
+    Δps = zero(anchors)
+    if anchor == "right"
+        bbs, Δps = mirror_box_around_anchor(bbs, anchors)
+    end
     # Which of these are most interesting and can fit without intersecting?
     it = boundingboxes_select_non_intersecting_by_priority_then_order(bbs, pris) 
     sel_lbs = labels[it]
-    sel_pos = poss[it]
+    sel_Δps = Δps[it]
+    sel_p = anchors[it]
+    sel_anchors = sel_p .+ sel_Δps
     sel_pris = pris[it]
-    selected_labels_broadcast_f(f, sel_lbs, sel_pos, sel_pris)
+    selected_labels_broadcast_f(f, sel_lbs, sel_anchors, sel_pris)
     it, bbs[it]
 end
-function labels_prominent(f, labels, poss::T, pris; crashpadding = 1.05) where T<:Vector{<:Number}
-    ps = Point.(poss, zero(eltype(poss)))
-    labels_prominent(f, labels, ps, pris; crashpadding)
+function labels_prominent(f, labels, anchors::T, pris; 
+        crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number}
+    ps = Point.(anchors, zero(eltype(anchors)))
+    labels_prominent(f, labels, ps, pris; crashpadding, anchor)
 end
 
 """
-    crash_padded_boundingboxes(labels, poss, crashpadding)
+    crash_padded_boundingboxes(labels, anchors, crashpadding)
     --> Vector{BoundingBox}
 
 The boundingboxes of all placed and padded labels (were that possible).
 Multiplication scales from the centre of the box.
 Note that `crashpadding` can also be a vector of factors, for more detailed control.
 """
-function crash_padded_boundingboxes(labels, poss, crashpadding)
+function crash_padded_boundingboxes(labels, anchors, crashpadding)
     bbo = BoundingBox.(labels) .* crashpadding
     # Adding a point to a boundingbox does not move the boundingbox.
     # Me must do that corner by corner
-    map(zip(bbo, poss)) do (bb, p)
+    map(zip(bbo, anchors)) do (bb, p)
         BoundingBox(bb.corner1 + p, bb.corner2 + p)
     end
 end
@@ -141,6 +154,24 @@ function selected_labels_broadcast_f(f, sel_lbs, sel_bbs, sel_pris)
     map(it) do (l, b, p)
         f(l, b, p)
     end
+end
+
+
+function mirror_box_around_anchor(bbs::Vector{BoundingBox}, anchors::Vector{Point})
+    @assert length(bbs) == length(anchors)
+    mbbs = similar(bbs)
+    Δp_anchors = similar(anchors)
+    for (i, (bb, anchor)) in enumerate(zip(bbs, anchors))
+        mbbs[i], Δp_anchors[i] = mirror_box_around_anchor(bb, anchor)
+    end
+    mbbs, Δp_anchors
+end
+function mirror_box_around_anchor(bb::BoundingBox, anchor::Point)
+    xl = anchor.x - bb.corner1.x
+    xr = bb.corner2.x - anchor.x
+    c1x = anchor.x - xr
+    c2x = anchor.x + xl
+    BoundingBox(Point(c1x, bb.corner1.y), Point(c2x, bb.corner2.y)), Point(xl - xr, 0.0)
 end
 
 end # Module

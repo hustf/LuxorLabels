@@ -11,6 +11,9 @@ function run_all_tests()
     @testset "box" begin
         include("test_box.jl")
     end
+    @testset "box anchor right" begin
+        include("test_box_anchor_right.jl")
+    end
 end
 
 # This is copied directly from Luxor.

@@ -30,7 +30,7 @@ for i = 1:30
         push!(poss, Point(j * 10, i * 10))
     end
 end
-it, bbs = labels_prominent(foo, lbls, poss, pris)
+it, bbs = labels_prominent(foo, lbls, poss, pris; anchor = "right")
 setline(0.05)
 # Mark anchor point and boundingbox
 for (i, b) in zip(it, bbs)
@@ -38,6 +38,5 @@ for (i, b) in zip(it, bbs)
     box(b, :stroke)
 end
 cb = BoundingBox(Point(-15, -15), Point(325, 325))
-snapshot(;fname = "test_box.svg", cb)
+snapshot(;fname = "test_box_anchor_right.svg", cb)
 @test Luxor.finish()
-
