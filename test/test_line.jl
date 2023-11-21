@@ -12,7 +12,7 @@ for i = 0:30
     push!(pris, mod(i, 10) == 0 ? 1 : 2)
     push!(poss, i * 10)
 end
-it, bbs = labels_prominent(f, lbls, poss, pris)
+it, bbs = broadcast_prominent_labels_to_plotfunc(f, lbls, poss, pris)
 cb = BoundingBox(bbs[1].corner1, bbs[4].corner2)
 snapshot(;fname = "test_line_1.svg", cb)
 ###
@@ -31,7 +31,7 @@ for i = 0:30
     end
     push!(poss, i * 10)
 end
-it, bbs = labels_prominent(f, lbls, poss, pris)
+it, bbs = broadcast_prominent_labels_to_plotfunc(f, lbls, poss, pris)
 cb = BoundingBox(bbs[1].corner1, bbs[4].corner2)
 snapshot(;fname = "test_line_2.svg", cb)
 @test Luxor.finish()

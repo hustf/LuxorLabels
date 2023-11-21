@@ -1,11 +1,11 @@
 module LuxorLabels
 import Luxor
 using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +
-export labels_prominent
+export broadcast_prominent_labels_to_plotfunc
 
 """
-    labels_prominent(f, labels, anchors, pris; crashpadding = 1.05, anchor = "left") \n
-    labels_prominent(f, labels, anchors::T, pris; crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number} \n
+    broadcast_prominent_labels_to_plotfunc(f, txtlabels, anchors, pris; crashpadding = 1.05, anchor = "left") \n
+    broadcast_prominent_labels_to_plotfunc(f, txtlabels, anchors::T, pris; crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number} \n
     --> selected_indexes, selected_padding_bounding_boxes
 
 `f` is user's label plotting function taking three variables:
@@ -14,12 +14,12 @@ export labels_prominent
     - `pos`
     - `pri`
 
-`labels`        Strings to send to f one by one if selected
-'anchors'          Positions to send to f one by one if selected. Elements should behave like Point, 
+`txtlabels`        Strings to send to f one by one if selected 
+'anchors'       Positions to send to f one by one if selected. Elements should behave like Point, 
                 but may well be points on a line.
                 If a vector of numbers, will be interpreted as horizontally distributed points: `Point.(anchors, zero(eltype(anchors)))` 
 'pris'          Priorities. '1' is higher priority than '2'.
-'crashpadding'  Keyword argument, default 1.05. Increases bounding boxes around labels by this factor. 
+'crashpadding'  Keyword argument, default 1.05. Increases bounding boxes around txtlabels by this factor. 
                 Can also be given as a vector of individual scaling factor. 
                 Centre of the scaling is the centre of each bounding box.
 'anchor'        Keyword argument, default "left'". For right-aligning, set to "right", which means
@@ -28,8 +28,8 @@ export labels_prominent
 
 Intention:
 
-    - Prioritize between labels. 
-    - Display (the selected) labels by calling f
+    - Prioritize between txtlabels. 
+    - Display (the selected non-overlapping) labels by calling f
     - Lower priority (selected) labels are plotted first (at "bottom"). This has a possible visual effect
       if 'f' adds textboxes or other graphics around the text, outside of 'textentents' bounding boxes.
       Higher priority labels will never be partially covered by lower priority labels.
@@ -47,49 +47,79 @@ Use case:
     - While displaying a map, prioritize showing capital cities over street names.
     - While displaying a train schedule, prioritize end stops.
 """
-function labels_prominent(f, labels, anchors, pris; 
+function broadcast_prominent_labels_to_plotfunc(f, txtlabels, anchors, pris; 
         crashpadding = 1.05, anchor = "left")
-    if ! (length(labels) == length(anchors) == length(pris)) 
-        throw(ArgumentError("Vectors have unequal length: $(length(labels))  $(length(anchors))  $(length(pris))"))
+    if ! (length(txtlabels) == length(anchors) == length(pris)) 
+        throw(ArgumentError("Vectors have unequal length: $(length(txtlabels))  $(length(anchors))  $(length(pris))"))
     end
-    if length(crashpadding) !== 1 && length(scalefactor) !== length(labels)
-        throw(ArgumentError("Vectors have unequal length: $(length(labels))  $(length(anchors))  $(length(pris)) $(length(crashpadding))"))
+    if length(crashpadding) !== 1 && length(pris) !== length(txtlabels)
+        throw(ArgumentError("Vectors have unequal length: $(length(txtlabels))  $(length(anchors))  $(length(pris)) $(length(crashpadding))"))
     end
     @assert anchor == "left" || anchor == "right"
     # The boundingboxes of all placed and padded labels (were that possible).
     # Multiplication scales from the centre of the box.
     # Note that keyword `crashpadding` could also be a vector, for more detailed control.
-    bbs = crash_padded_boundingboxes(labels, anchors, crashpadding)
+    # (not tested so far)
+    it, sel_bbs, sel_lbs, sel_anchors, sel_pris = non_overlapping_labels_data(txtlabels, anchors, pris; 
+        crashpadding, anchor)
+    # Plot the selected and adjusted data.
+    labels_broadcast_plotfunc(f, sel_lbs, sel_anchors, sel_pris)
+    it, sel_bbs
+end
+function broadcast_prominent_labels_to_plotfunc(f, txtlabels, anchors::T, pris; 
+        crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number}
+    ps = Point.(anchors, zero(eltype(anchors)))
+    broadcast_prominent_labels_to_plotfunc(f, txtlabels, ps, pris; crashpadding, anchor)
+end
+
+"""
+    non_overlapping_labels_data(txtlabels, anchors, pris; 
+    crashpadding = 1.05, anchor = "left")
+    ---> it           Indexes of input labels which can be shown without overlap. Reordered by prominence.
+         adj_bbs      Adjusted boundary boxes. Adjustments depend on anchor right or left.
+         sel_lbs      Labels which can be shown without overlap. Reordered by prominence.
+         sel_anchors  Position of anchors, depending on anchor right or left. Can be 2d points or 1d numbers.
+         sel_pris     The prominence of the selected labels.
+
+    
+See 'broadcast_prominent_labels_to_plotfunc for input arguments.
+"""
+function non_overlapping_labels_data(txtlabels, anchors, pris; 
+    crashpadding = 1.05, anchor = "left")
+    # The boundingboxes of all placed and padded labels (were that possible).
+    # Multiplication scales from the centre of the box.
+    # Note that keyword `crashpadding` could also be a vector, for more detailed control.
+    # Note that keyword `crashpadding` could also be a vector, for more detailed control.
+    bbs = crash_padded_boundingboxes(txtlabels, anchors, crashpadding)
     Δps = zero(anchors)
     if anchor == "right"
         bbs, Δps = mirror_box_around_anchor(bbs, anchors)
     end
     # Which of these are most interesting and can fit without intersecting?
-    it = boundingboxes_select_non_intersecting_by_priority_then_order(bbs, pris) 
-    sel_lbs = labels[it]
+    it = boundingboxes_select_non_overlapping_by_priority_then_order(bbs, pris)
+    sel_lbs = txtlabels[it]
     sel_Δps = Δps[it]
     sel_p = anchors[it]
     sel_anchors = sel_p .+ sel_Δps
     sel_pris = pris[it]
-    selected_labels_broadcast_f(f, sel_lbs, sel_anchors, sel_pris)
-    it, bbs[it]
-end
-function labels_prominent(f, labels, anchors::T, pris; 
-        crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number}
-    ps = Point.(anchors, zero(eltype(anchors)))
-    labels_prominent(f, labels, ps, pris; crashpadding, anchor)
+    sel_bbs = bbs[it]
+    adj_bbs = map(zip(sel_bbs, sel_Δps)) do (bb, Δp)
+        BoundingBox(bb.corner1 + Δp, bb.corner2 + Δp)
+    end
+    it, adj_bbs, sel_lbs, sel_anchors, sel_pris
 end
 
+
 """
-    crash_padded_boundingboxes(labels, anchors, crashpadding)
+    crash_padded_boundingboxes(txtlabels, anchors, crashpadding)
     --> Vector{BoundingBox}
 
 The boundingboxes of all placed and padded labels (were that possible).
 Multiplication scales from the centre of the box.
 Note that `crashpadding` can also be a vector of factors, for more detailed control.
 """
-function crash_padded_boundingboxes(labels, anchors, crashpadding)
-    bbo = BoundingBox.(labels) .* crashpadding
+function crash_padded_boundingboxes(txtlabels, anchors, crashpadding)
+    bbo = BoundingBox.(txtlabels) .* crashpadding
     # Adding a point to a boundingbox does not move the boundingbox.
     # Me must do that corner by corner
     map(zip(bbo, anchors)) do (bb, p)
@@ -98,18 +128,18 @@ function crash_padded_boundingboxes(labels, anchors, crashpadding)
 end
 
 """
-    boundingboxes_select_non_intersecting_by_priority_then_order(boundingboxes::T2, pris::T3) where {T3 <: Vector, T2 <: Vector{BoundingBox}}
+    boundingboxes_select_non_overlapping_by_priority_then_order(boundingboxes::T2, pris::T3) where {T3 <: Vector, T2 <: Vector{BoundingBox}}
 
     --> Indexes of boundingboxes (& other collections) 
 """
-function boundingboxes_select_non_intersecting_by_priority_then_order(boundingboxes::T2, pris::T3) where {T3 <: Vector, T2 <: Vector{BoundingBox}}
+function boundingboxes_select_non_overlapping_by_priority_then_order(boundingboxes::T2, pris::T3) where {T3 <: Vector, T2 <: Vector{BoundingBox}}
     p = sortperm(pris)
-    sel = boundingboxes_select_non_intersecting_by_order(boundingboxes[p])
+    sel = boundingboxes_select_non_overlapping_by_order(boundingboxes[p])
     p[sel]
 end
 
 """
-    boundingboxes_select_non_intersecting_by_order(sorted_boundingboxes::T) where T
+    boundingboxes_select_non_overlapping_by_order(sorted_boundingboxes::T) where T
 
 Return the index of boundingboxes which can be placed in the given order 
 without any overlapping already placed boxes. 
@@ -117,7 +147,7 @@ without any overlapping already placed boxes.
 If no overlap, returns [1..length(sorted_boundingboxes)]
 As a minimum, returns [1]
 """
-function boundingboxes_select_non_intersecting_by_order(sorted_boundingboxes::T) where T
+function boundingboxes_select_non_overlapping_by_order(sorted_boundingboxes::T) where T
     sel_bbs = T()
     selected = Int64[]
     for (i, b) in enumerate(sorted_boundingboxes)
@@ -125,6 +155,9 @@ function boundingboxes_select_non_intersecting_by_order(sorted_boundingboxes::T)
             push!(sel_bbs, b)
             push!(selected, i)
         end 
+    end
+    if length(selected) < length(sorted_boundingboxes)
+        @debug "Selected $(length(selected)) of $(length(sorted_boundingboxes)) non-overlapping labels"
     end
     selected
 end
@@ -144,12 +177,12 @@ function is_colliding(bb, bbs)
 end
 
 """
-    selected_labels_broadcast_f(f, sel_lbs, sel_bbs, sel_pris)
+    labels_broadcast_plotfunc(f, sel_lbs, sel_bbs, sel_pris)
 
 Calls 'f' with three corresponding arguments.
 Returns output as a vector (output is for checking purposes, 'f' should plot the label)
 """
-function selected_labels_broadcast_f(f, sel_lbs, sel_bbs, sel_pris)
+function labels_broadcast_plotfunc(f, sel_lbs, sel_bbs, sel_pris)
     it = zip(reverse(sel_lbs), reverse(sel_bbs), reverse(sel_pris))
     map(it) do (l, b, p)
         f(l, b, p)

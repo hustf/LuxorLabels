@@ -30,7 +30,7 @@ for i = 1:30
         push!(poss, Point(j * 10, i * 10))
     end
 end
-it, bbs = labels_prominent(foo, lbls, poss, pris)
+it, bbs = broadcast_prominent_labels_to_plotfunc(foo, lbls, poss, pris)
 setline(0.05)
 # Mark anchor point and boundingbox
 for (i, b) in zip(it, bbs)
