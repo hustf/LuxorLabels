@@ -1,7 +1,7 @@
 module LuxorLabels
 import Luxor
 using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +
-export broadcast_prominent_labels_to_plotfunc
+export broadcast_prominent_labels_to_plotfunc, broadcast_all_labels_to_plotfunc
 
 """
     broadcast_prominent_labels_to_plotfunc(f, txtlabels, anchors, pris; crashpadding = 1.05, anchor = "left") \n
@@ -206,5 +206,44 @@ function mirror_box_around_anchor(bb::BoundingBox, anchor::Point)
     c2x = anchor.x + xl
     BoundingBox(Point(c1x, bb.corner1.y), Point(c2x, bb.corner2.y)), Point(xl - xr, 0.0)
 end
+
+"""
+    broadcast_all_labels_to_plotfunc(f, txtlabels, anchors, pris; 
+        crashpadding = 1.05, anchor = "left")
+    broadcast_all_labels_to_plotfunc(f, txtlabels, anchors::T, pris; 
+        crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number}
+    --> selected_indexes, selected_padding_bounding_boxes
+
+
+Primarily for problem-solving or for manual nudging of labels. 
+Plot all labels regardless of overlapping. A roughly similar output 
+may be achieved by setting `crashpadding` to zero or close to zero.
+"""
+function broadcast_all_labels_to_plotfunc(f, txtlabels, anchors, pris; 
+        crashpadding = 1.05, anchor = "left")
+    if ! (length(txtlabels) == length(anchors) == length(pris)) 
+        throw(ArgumentError("Vectors have unequal length: $(length(txtlabels))  $(length(anchors))  $(length(pris))"))
+    end
+    if length(crashpadding) !== 1 && length(pris) !== length(txtlabels)
+        throw(ArgumentError("Vectors have unequal length: $(length(txtlabels))  $(length(anchors))  $(length(pris)) $(length(crashpadding))"))
+    end
+    @assert anchor == "left" || anchor == "right"
+    bbs = crash_padded_boundingboxes(txtlabels, anchors, crashpadding)
+    Δps = zero(anchors)
+    if anchor == "right"
+        bbs, Δps = mirror_box_around_anchor(bbs, anchors)
+    end
+    adj_anchors = anchors .+ Δps
+    # Plot the selected and adjusted data.
+    labels_broadcast_plotfunc(f, txtlabels, adj_anchors, pris)
+    1:length(txtlabels), bbs
+end
+function broadcast_all_labels_to_plotfunc(f, txtlabels, anchors::T, pris; 
+        crashpadding = 1.05, anchor = "left") where T<:Vector{<:Number}
+    ps = Point.(anchors, zero(eltype(anchors)))
+    broadcast_all_labels_to_plotfunc(f, txtlabels, ps, pris; crashpadding, anchor)
+end
+
+
 
 end # Module

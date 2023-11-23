@@ -41,3 +41,8 @@ cb = BoundingBox(Point(-15, -15), Point(325, 325))
 snapshot(;fname = "test_box.svg", cb)
 @test Luxor.finish()
 
+Drawing(NaN, NaN, :rec)
+background("cyan")
+it, bbs = broadcast_all_labels_to_plotfunc(foo, lbls, poss, pris)
+snapshot(;fname = "test_box_all.svg", cb)
+@test Luxor.finish()
