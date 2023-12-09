@@ -1,5 +1,16 @@
 # LuxorLabels
-An add-on to [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl), this only exports `broadcast_prominent_labels_to_plotfunc`. 
+An add-on to [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl), this exports
+
+- `label_prioritized_optimize_offset`
+- `label_all_at_given_offset`
+- `label_all_optimize_vertical_offset`
+- `label_all_optimize_horizontal_offset`
+- `label_all_optimize_offset`
+- `label_prioritized_at_given_offset`
+- `label_prioritized_optimize_vertical_offset`
+- `label_prioritized_optimize_horizontal_offset`
+- `bounding_boxes_all_at_given_offset`
+
 
 Selective labels display is nice for rulers, axes and geographical maps that are made for different output scales. There is no use in displaying overlapping labels.
 

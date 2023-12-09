@@ -8,11 +8,8 @@ function run_all_tests()
     @testset "line" begin
         include("test_line.jl")
     end
-    @testset "box" begin
-        include("test_box.jl")
-    end
-    @testset "box anchor right" begin
-        include("test_box_anchor_right.jl")
+    @testset "labels" begin
+        include("test_labels.jl")
     end
 end
 
