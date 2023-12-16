@@ -4,9 +4,14 @@ import Base: show
 using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +,
     @layer, fontsize, textextents, sethue, text, setdash, line, box,
     circle
-export LabelPaperSpace,
-   plot_label_bounding_box, labels_paper_space, labels_broadcast_plotfunc
+import JuMP
+using GLPK
+import GLPK.MathOptInterface
+using JuMP: set_optimizer_attribute, @variable, @constraint, optimize!, @objective, 
+    termination_status, Model, value, num_constraints, delete, unregister
 
+
+# These are the most powerful interface functions:
 export label_prioritized_optimize_offset,
     label_all_at_given_offset,
     label_all_optimize_vertical_offset,
@@ -16,6 +21,9 @@ export label_prioritized_optimize_offset,
     label_prioritized_optimize_vertical_offset,
     label_prioritized_optimize_horizontal_offset,
     bounding_boxes_all_at_given_offset
+# These may be nice for debugging and prettier printing:
+export LabelPaperSpace,
+    plot_label_bounding_box, labels_paper_space, labels_broadcast_plotfunc
 
 @kwdef mutable struct LabelPaperSpace
     txt::String = "Label\ntext"
@@ -95,8 +103,10 @@ function labels_paper_space(;kwds...)
 end
 include("io.jl")
 include("utils.jl")
+include("overlap_prominence_order.jl")
 include("default_plot_label_bounding_box.jl")
 include("label_functions.jl")
+include("optimize_offset.jl")
 
 
 """

@@ -1,3 +1,35 @@
+# Interfaces. These call 'label_general' with keywords.
+# `bounding_boxes_all_at_given_offset`
+# `label_all_at_given_offset`
+# `label_all_optimize_vertical_offset`
+# `label_all_optimize_horizontal_offset`
+# `label_all_optimize_offset`
+# `label_prioritized_at_given_offset`
+# `label_prioritized_optimize_vertical_offset`
+# `label_prioritized_optimize_horizontal_offset`
+# `label_prioritized_optimize_offset`
+
+"""
+    bounding_boxes_all_at_given_offset(; kwds...)
+    ---> prioritized_indexes, boundary boxes
+
+- Don't plot labels
+- Return bounding boxes of all labels
+
+"""
+function bounding_boxes_all_at_given_offset(; kwds...)
+    check_kwds(;kwds...)
+    @assert :optim_vert  ∉ keys(kwds)
+    @assert :optim_horiz ∉ keys(kwds)
+    @assert :prioritize  ∉ keys(kwds)
+    @assert :plot        ∉ keys(kwds)
+    label_general(; optim_vert = false, 
+                    optim_horiz = false,
+                    prioritize = false,
+                    plot = false,
+                    kwds...)
+end
+
 """
     label_prioritized_at_given_offset(; kwds...)
     ---> prioritized_indexes, boundary boxes
@@ -146,26 +178,6 @@ end
 
 
 
-"""
-    bounding_boxes_all_at_given_offset(; kwds...)
-    ---> prioritized_indexes, boundary boxes
-
-- Don't plot labels
-- Return bounding boxes of all labels
-
-"""
-function bounding_boxes_all_at_given_offset(; kwds...)
-    check_kwds(;kwds...)
-    @assert :optim_vert  ∉ keys(kwds)
-    @assert :optim_horiz ∉ keys(kwds)
-    @assert :prioritize  ∉ keys(kwds)
-    @assert :plot        ∉ keys(kwds)
-    label_general(; optim_vert = false, 
-                    optim_horiz = false,
-                    prioritize = false,
-                    plot = false,
-                    kwds...)
-end
 
 
 """
@@ -230,7 +242,8 @@ function label_general(f::Function, labels::Vector{LabelPaperSpace};
     if optim_vert && optim_horiz
         throw("The hard problem.")
     elseif optim_vert
-        throw("The less hard, vertical problem.")
+        #throw("The less hard, vertical problem.")
+        labels_optimized = optimize_offset_direction_vertical!(labels, f, kwds...)
     elseif optim_horiz
         throw("The less hard, horizontal problem.")
     else

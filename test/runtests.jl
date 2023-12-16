@@ -11,6 +11,10 @@ function run_all_tests()
     @testset "labels" begin
         include("test_labels.jl")
     end
+
+    @testset "random circle" begin
+        include("test_random_circle.jl")
+    end
 end
 
 # This is copied directly from Luxor.

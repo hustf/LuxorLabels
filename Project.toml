@@ -1,13 +1,23 @@
 name = "LuxorLabels"
 uuid = "bc38f42f-d837-40aa-8305-15f3941c28e9"
 authors = ["hustf <hustf@users.noreply.github.com> and contributors"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
+GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
 Pango_jll = "36c8627f-9965-5494-a995-c6b170f724f3"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Pango_jll = "=1.42.4"
 julia = "1.7"
+
+[extras]
+ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "Random", "SpecialFunctions", "ColorSchemes"]

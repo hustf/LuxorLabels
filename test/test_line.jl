@@ -17,10 +17,9 @@ labels = labels_paper_space(;txt, x, prominence)
 # A very simple label plot, doesn't return anything interestin
 f(label) = text(label.txt, label.x, label.y)
 Drawing(NaN, NaN, :rec)
-
 background("salmon")
 pts = labels_broadcast_plotfunc(f, labels)
-cb = BoundingBox(Point(-10, -20), pts[end] + (20, 0)) # Point(400, 20))
+cb = BoundingBox(Point(-10, -20), pts[end] + (50, 0)) # Point(400, 20))Point(-1.0, -7.0) : Point(313.0, 0.0)
 setcolor("blue")
 box(cb, :dash)
 circle(0, 0, 10, :stroke)
