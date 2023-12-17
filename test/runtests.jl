@@ -9,7 +9,7 @@ function run_all_tests()
         include("test_line.jl")
     end
     @testset "labels" begin
-        include("test_labels.jl")
+        include("test_interfaces.jl")
     end
 
     @testset "random circle" begin

@@ -5,8 +5,13 @@ end
 function optimize_offset_direction_horizontal!(labels, f; kwds...)
     optimize_offset_direction!(labels, f, [1, 4]; kwds...)
 end
-
+function optimize_offset_direction_diagonal!(labels, f; kwds...)
+    optimize_offset_direction!(labels, f, [1, 3]; kwds...)
+end
 function optimize_offset_direction!(labels, f; kwds...)
+    # The complexity of allowing four possible offset directions
+    # instead of two is extremely costly. And the graphics are
+    # uglier too (if a leader line is included). So don't, please!
     optimize_offset_direction!(labels, f, 1:4; kwds...)
 end
 
@@ -93,8 +98,6 @@ function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_lab
         if nconstr > 500
             if m > 2
                 @warn "The number of constraints $nconstr > 500, consider restraining label offset to two positions only."
-            else
-                @warn "The number of constraints $nconstr > 500. The label offset optimization may take time."
             end
         end
         @assert num_constraints(model; count_variable_in_set_constraints = false) > n

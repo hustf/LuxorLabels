@@ -9,7 +9,8 @@ using ColorSchemes: browncyan
 using Random
 using SpecialFunctions
 
-
+# We want to define "random labels" similar to typical bus stop names,
+# and we prefer not to use `Distributions.jl` because it's a heavy dependency.
 std_normal_pdf(x) = exp(-0.5 * x^2) / sqrt(2 * π)
 std_normal_cdf(x) = 0.5 * (1 + erf(x / sqrt(2)))
 skew_normal_pdf(x, location, scale, alpha) = 2 / scale * std_normal_pdf((x - location) / scale) * std_normal_cdf(alpha * (x - location) / scale)
@@ -26,6 +27,7 @@ function generate_skew_normal_integers(;n = 100, mean = 7.0, lower_std = 3.0, up
 end
 
 function generate_random_label_text(; nlabels = 10)
+    # The letter frequencies are taken from 'Fedrelandssalmen'...
     rng = join([repeat(' ', 121),
         repeat('g', 30),
         repeat('u', 7),
@@ -67,16 +69,17 @@ function generate_labelsdata_circle_randomdist(; nlabels = 10, r = 500)
     y = r .* sin.(α)
     textcolor = [browncyan[Int64(p)] for p in prominence]
     shadowcolor = [browncyan[Int64(10 - p)] for p in prominence]
-    txt, prominence, x, y, textcolor, shadowcolor
+    halign = [x < 0 ? :left : :right for (x,y) in zip(x, y)]
+    txt, prominence, x, y, textcolor, shadowcolor, halign
 end
 
 
 function makepic(;f, r = 500, nlabels = 10, fname = "test_random_circle.svg")
-    txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_circle_randomdist(;r, nlabels)
+    txt, prominence, x, y, textcolor, shadowcolor, halign = generate_labelsdata_circle_randomdist(;r, nlabels)
     Drawing(NaN, NaN, :rec)
     background(browncyan[5])
     circle(O, r ; action = :stroke)
-    it, bbs = f(;txt, prominence, x, y, textcolor, shadowcolor)
+    it, bbs = f(;txt, prominence, x, y, textcolor, shadowcolor, halign)
     # encompassing bounding box
     cb = BoundingBox(O + (-1.15r, -1.15r), O + (1.15r, 1.15r))
     cb = foldr(+, bbs, init = cb)
@@ -94,9 +97,12 @@ makepic(; f = label_prioritized_optimize_vertical_offset)
 # With debug logging on:
 #[ Info: Showing 44 of 80, some would overlap.
 #  1.058 s (607479 allocations: 38.87 MiB)
-makepic(;nlabels = 80, f = label_prioritized_optimize_vertical_offset, fname = "test_random_circle_2.svg")
-makepic(;nlabels = 80, f = label_all_optimize_vertical_offset, fname = "test_random_circle_2.svg")
+makepic(;nlabels = 80, f = label_prioritized_optimize_vertical_offset, fname = "test_random_circle_1.svg")
+makepic(;nlabels = 80, f = label_prioritized_optimize_horizontal_offset, fname = "test_random_circle_2.svg")
+makepic(;nlabels = 80, f = label_prioritized_optimize_diagonal_offset, fname = "test_random_circle_3.svg")
 # The time this takes varies wildly, probably depending on whether two important labels are interferring.
 # In that case, all other constraints are removed before the model can be resolved.
-makepic(;nlabels = 50, f = label_prioritized_optimize_offset, fname = "test_random_circle_4.svg")
+makepic(;nlabels = 40, f = label_prioritized_optimize_offset, fname = "test_random_circle_4.svg")
 
+# For readme...
+makepic(;nlabels = 30, r = 280, f = label_prioritized_optimize_diagonal_offset, fname = "label_prioritized_optimize_diagonal_offset.svg")

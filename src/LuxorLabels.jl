@@ -16,15 +16,32 @@ export label_prioritized_optimize_offset,
     label_all_at_given_offset,
     label_all_optimize_vertical_offset,
     label_all_optimize_horizontal_offset,
+    label_all_optimize_diagonal_offset,
     label_all_optimize_offset,
     label_prioritized_at_given_offset,
     label_prioritized_optimize_vertical_offset,
     label_prioritized_optimize_horizontal_offset,
+    label_prioritized_optimize_diagonal_offset,
     bounding_boxes_all_at_given_offset
 # These may be nice for debugging and prettier printing:
 export LabelPaperSpace,
     plot_label_bounding_box, labels_paper_space, labels_broadcast_plotfunc
 
+"""
+Keywords and defaults values for single instances of LabelPaperSpace.
+
+    - txt::String = "Label \\ntext"
+    - prominence::Float64 = 1.0
+    - x::Float64 = 0.0
+    - y::Float64 = 0.0
+    - halign::Symbol = :left
+    - offset::Point = Point(-39.0, 52.0)
+    - fontsize_prominence_1::Float64 = 22.0
+    - offsetbelow::Bool = true
+    - shadowcolor::Luxor.Colorant = Luxor.RGB{Float64}(0.342992,0.650614,0.772702)
+    - textcolor::Luxor.Colorant = Luxor.RGB{Float64}(0.347677,0.199863,0.085069)
+    - leaderline::Bool = true
+"""
 @kwdef mutable struct LabelPaperSpace
     txt::String = "Label\ntext"
     prominence::Float64 = 1.0
@@ -83,7 +100,13 @@ function labels_paper_space(;kwds...)
         end
     end
     # Find the lengths of the provided keyword argument arrays
-    lengths = length.(collect(values(kwds)))
+    lengths = map(collect(values(kwds))) do v
+        if v isa AbstractArray # Probably just a boring vector
+            length(v)
+        else
+            1 # Strings and other types are all of 'length' 1 in this context.
+        end
+    end
     if ! isempty(setdiff(unique(lengths), 1, maximum(lengths))) 
         throw(ArgumentError("The length of keyword argument values should be either identical or 1. Currrent lengths are $(lengths)"))
     end
@@ -93,8 +116,14 @@ function labels_paper_space(;kwds...)
     for i in 1:maximum(lengths)
         kwargs_for_this_instance = Dict{Symbol, Any}()
         # For each keyword argument, pick the corresponding element, cycling if necessary
-        for (key, value_array) in kwds
-            kwargs_for_this_instance[key] = value_array[mod1(i, length(value_array))]
+        for (key, val) in kwds
+            if val isa AbstractArray
+                kwargs_for_this_instance[key] = val[mod1(i, length(val))]
+            else
+                # e.g. a keyword like 'halign' can be specified as ':right' and apply to 
+                # all the generated labels.
+                kwargs_for_this_instance[key] = val
+            end
         end
         # Create a new LabelPaperSpace object using these keyword arguments
         push!(label_paper_spaces, LabelPaperSpace(; kwargs_for_this_instance...))

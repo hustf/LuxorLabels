@@ -21,6 +21,7 @@ function bounding_boxes_all_at_given_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_vert = false, 
@@ -40,6 +41,7 @@ function label_prioritized_at_given_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_vert = false, 
@@ -58,6 +60,7 @@ function label_prioritized_optimize_vertical_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_horiz = false,
@@ -77,9 +80,33 @@ function label_prioritized_optimize_horizontal_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_vert = false, 
+                    kwds...)
+end
+
+
+"""
+    label_prioritized_optimize_diagonal_offset(; kwds...)
+    ---> prioritized_indexes, boundary boxes
+
+- Optimize offset: bottom left - top right. (or top left - bottom right)
+- Drop labels overlapped by others based on prominence and order.
+
+This works by flipping offset direction 180° for the alternative placement.
+"""
+function label_prioritized_optimize_diagonal_offset(; kwds...)
+    check_kwds(;kwds...)
+    @assert :optim_vert  ∉ keys(kwds)
+    @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
+    @assert :prioritize  ∉ keys(kwds)
+    @assert :plot        ∉ keys(kwds)
+    label_general(; optim_vert = false,
+                    optim_horiz = false,
+                    optim_diagon = true, 
                     kwds...)
 end
 
@@ -88,13 +115,14 @@ end
     ---> prioritized_indexes, boundary boxes
 
 - Most powerful / abstract.
-- Optimize offset up, down, right, left. 
+- Optimize offset up -down, right - left or diagonally. 
 - Drop labels overlapped by others based on prominence and order.
 """
 function label_prioritized_optimize_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; kwds...)
@@ -113,6 +141,7 @@ function label_all_at_given_offset(;  kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_vert = false, 
@@ -133,6 +162,7 @@ function label_all_optimize_vertical_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_horiz = false,
@@ -152,6 +182,7 @@ function label_all_optimize_horizontal_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_horiz = false,
@@ -159,6 +190,27 @@ function label_all_optimize_horizontal_offset(; kwds...)
                     kwds...)
 end
 
+
+"""
+    label_all_optimize_diagonal_offset(; kwds...)
+    ---> prioritized_indexes, boundary boxes
+
+- Most powerful / abstract.
+- Optimize offset: left or right.
+"""
+function label_all_optimize_diagonal_offset(; kwds...)
+    check_kwds(;kwds...)
+    @assert :optim_vert  ∉ keys(kwds)
+    @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
+    @assert :prioritize  ∉ keys(kwds)
+    @assert :plot        ∉ keys(kwds)
+    label_general(; optim_horiz = false,
+                    optim_vert = false,
+                    optim_diagon = true,
+                    prioritize = false,
+                    kwds...)
+end
 
 """
     label_all_optimize_offset(; kwds...)
@@ -170,6 +222,7 @@ function label_all_optimize_offset(; kwds...)
     check_kwds(;kwds...)
     @assert :optim_vert  ∉ keys(kwds)
     @assert :optim_horiz ∉ keys(kwds)
+    @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
     label_general(; prioritize = false,
@@ -186,6 +239,7 @@ end
     label_general(f::Function, labels::Vector{LabelPaperSpace}; 
             optim_vert = true, 
             optim_horiz = true,
+            optim_diagon = false,
             prioritize = true,
             plot = true, 
             kwds...)
@@ -196,19 +250,21 @@ General functional behind interfaces
 - `label_all_at_given_offset`
 - `label_all_optimize_vertical_offset`
 - `label_all_optimize_horizontal_offset`
+- `label_all_optimize_diagonal_offset`
 - `label_all_optimize_offset`
 - `label_prioritized_at_given_offset`
 - `label_prioritized_optimize_vertical_offset`
 - `label_prioritized_optimize_horizontal_offset`
+- `label_prioritized_optimize_diagonal_offset`
 - `label_prioritized_optimize_offset`
 
-Default keywords are all true. They specify the most powerful / abstract
+Default keywords are all true (except `optim_diagon`). They specify the most powerful / abstract
 functionality. 
 """
 function label_general(; f::Function = plot_label_bounding_box,
     kwds...)
     check_kwds(;kwds...)
-    # Make a vector of labels from the relevant keywords.
+    # Make a vector of labels from the label - relevant keywords.
     kwds_labels = filter(kwds) do k
         k[1] ∈ fieldnames(LabelPaperSpace)
     end
@@ -219,7 +275,8 @@ function label_general(; f::Function = plot_label_bounding_box,
     else
         throw("labels not defined.")
     end
-    # Remove the keywords 'labels', we'll pass labels as a normal argument
+    # Remove the keywords relevant to 'labels', because we'll pass 
+    # the generated labels as a normal argument.
     kwds_dict = filter(kwds -> kwds[1] != :labels, kwds)
     @assert ! isempty(labels)
     # Isolate the remaining keywords. Those will be
@@ -230,6 +287,7 @@ end
 function label_general(f::Function, labels::Vector{LabelPaperSpace}; 
         optim_vert = true, 
         optim_horiz = true,
+        optim_diagon = false,
         prioritize = true,
         plot = true, 
         kwds...)
@@ -245,6 +303,8 @@ function label_general(f::Function, labels::Vector{LabelPaperSpace};
         labels_optimized = optimize_offset_direction_vertical!(labels, f, kwds...)
     elseif optim_horiz
         labels_optimized = optimize_offset_direction_horizontal!(labels, f, kwds...)
+    elseif optim_diagon
+        labels_optimized = optimize_offset_direction_diagonal!(labels, f, kwds...)
     else
         labels_optimized = labels
     end

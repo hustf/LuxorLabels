@@ -47,22 +47,22 @@ end
     l = LabelPaperSpace()
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb = bb
-    snapshot(;cb)
+    snapshot(;cb, fname = "test_unit_1.svg")
 
     l = LabelPaperSpace(;offsetbelow = false)
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
-    snapshot(; cb )
+    snapshot(;cb, fname = "test_unit_2.svg")
 
     l = LabelPaperSpace(halign = :right)
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
-    snapshot(; cb )
+    snapshot(;cb, fname = "test_unit_3.svg")
 
     l = LabelPaperSpace(halign = :right, offsetbelow = false)
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
-    snapshot(; cb, fname = "plot_label_bounding_box.png" )
+    snapshot(;cb, fname = "test_unit_4.svg")
     @test true
 end
 
@@ -77,6 +77,7 @@ end
     @test length(labels_paper_space(;txt, prominence, x = 42)) == 6
     @test labels_paper_space(;txt, prominence, x = 42)[6].x == 42
     @test labels_paper_space(;txt, prominence, x = 42)[6].txt == txt[6]
+    @test labels_paper_space(;txt, prominence, x = 42, offsetbelow = false)[6].txt == txt[6]
     @test_throws ArgumentError labels_paper_space(;txt, prominence, x, y =[ 100, 200])
 end 
 

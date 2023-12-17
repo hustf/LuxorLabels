@@ -14,12 +14,12 @@ for i = 0:30
 end
 labels = labels_paper_space(;txt, x, prominence)
 
-# A very simple label plot, doesn't return anything interestin
+# A very simple label plot, doesn't return anything interesting
 f(label) = text(label.txt, label.x, label.y)
 Drawing(NaN, NaN, :rec)
 background("salmon")
 pts = labels_broadcast_plotfunc(f, labels)
-cb = BoundingBox(Point(-10, -20), pts[end] + (50, 0)) # Point(400, 20))Point(-1.0, -7.0) : Point(313.0, 0.0)
+cb = BoundingBox(Point(-10, -20), pts[end] + (50, 0)) 
 setcolor("blue")
 box(cb, :dash)
 circle(0, 0, 10, :stroke)
@@ -73,5 +73,5 @@ cb = foldr(+, bbs)
 setcolor("blue")
 circle(0, 0, 10, :stroke)
 snapshot(;fname = "test_line_3.svg", cb)
-
+# Cleanup
 @test Luxor.finish()

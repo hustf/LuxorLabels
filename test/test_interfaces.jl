@@ -1,3 +1,5 @@
+# Instead of a multitude of keywords to a few functions, our interface
+# consists of a lot of functions ("the keywords are in the function name"). 
 # Test the interface functions, all with the default label plotting function.
 using Test
 using LuxorLabels
@@ -59,7 +61,7 @@ snapshot(;cb, fname = "test_interfaces_11.svg")
 @test it == 1:900
 
 # Test that we can pass keywords through the pipeline that ends up in the 
-# label plotting function:
+# label plotting function (if they're not relevant to defining LabelPaperSpace objects).
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false, plot_guides = true)
@@ -84,7 +86,7 @@ snapshot(;cb, fname = "test_interfaces_13.svg")
 #
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
-it, bbs = label_prioritized_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+it, bbs = label_prioritized_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, halign = :right)
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 snapshot(;cb = cb1, fname = "test_interfaces_14.svg")
@@ -123,6 +125,19 @@ snapshot(;cb = cb1,  fname = "test_interfaces_16.svg")
 @test it[1] == 10
 @test length(it) == 10
 
+# Optimize offset directions diagonally
+# Drop labels with overlap based on prominence.
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+it, bbs = label_prioritized_optimize_diagonal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+# encompassing bounding box
+cb1 = foldr(+, bbs)
+cb1 += BoundingBox(O, O + (100, 0))
+snapshot(;cb = cb1,  fname = "test_interfaces_17.svg")
+@test it[1] == 10
+@test length(it) == 10
+
+
 
 #
 # Prepare a rectangular grid of labels 
@@ -137,7 +152,7 @@ it, bbs = label_prioritized_optimize_offset(;txt, prominence, x, y, textcolor, s
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 cb1 += BoundingBox(O, O + (100, 0))
-snapshot(;cb = cb1,  fname = "test_interfaces_17.svg")
+snapshot(;cb = cb1,  fname = "test_interfaces_18.svg")
 @test it[1] == 10
 @test length(it) == 20
 
@@ -145,48 +160,27 @@ snapshot(;cb = cb1,  fname = "test_interfaces_17.svg")
 # Test the remaining 'Keep all labels' variants
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
-label_all_optimize_offset_horizontal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
-snapshot(;cb = cb1,  fname = "test_interfaces_18.svg")
-
-Drawing(NaN, NaN, :rec)
-background(browncyan[5])
-label_all_optimize_offset_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+label_all_optimize_horizontal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
 snapshot(;cb = cb1,  fname = "test_interfaces_19.svg")
 
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
-label_all_optimize_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+label_all_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor)
 snapshot(;cb = cb1,  fname = "test_interfaces_20.svg")
 
-#
-# Find how fast the optimization becomes slow....
-#
-function timetaken(; f = label_prioritized_optimize_vertical_offset, cols = 5)
-    rws = 2
-    _ , prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws, cols, dx = 1, dy = 10)
-    txt = fill("9", rws * cols)
-    t0 = Base.time_ns()
-    # We assume this won't be optimized away!
-    f(;txt, prominence, x, y, textcolor, shadowcolor)
-    Float64((Base.time_ns() - t0) / 1e9)
-end
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+label_all_optimize_diagonal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+snapshot(;cb = cb1,  fname = "test_interfaces_21.svg")
 
 
-colrng = collect(1:11) .^2
-t_vert = map(colrng) do cols
-    @show cols
-    timetaken(; cols, f = label_prioritized_optimize_vertical_offset)
-end
-using UnicodePlots
-lineplot(colrng, t_vert; title = "Time [s] vs n")
-lineplot(colrng, t_vert.^(1/3); title =  "Time [s]^(1/3) vs n")
-# The time complexity is close to cubic for binary optimization
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+label_all_optimize_diagonal_offset(;txt, prominence, x, y, textcolor, shadowcolor, halign = :right)
+snapshot(;cb = cb1,  fname = "test_interfaces_22.svg")
 
-# Let's compare with four possible label placements.
-colrng = collect(1:4) .^2
-t_all = map(colrng) do cols
-    @show cols
-    timetaken(; cols, f = label_prioritized_optimize_offset)
-end
-lineplot(colrng, t_all; title = "Time [s] vs n")
-lineplot(colrng, t_all.^(1/3); title =  "Time [s]^(1/3) vs n")
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+label_all_optimize_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+snapshot(;cb = cb1,  fname = "test_interfaces_23.svg")
+
