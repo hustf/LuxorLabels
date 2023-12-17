@@ -39,7 +39,5 @@ Example of a box, where 1st priority given to 0, 10, 20, 30. 2nd priority is giv
 
 
 The interface is flexible: you would be able to deal with different angles, fonts and padding boxes by modifiying the Luxor context.
-If you are trying to find the necessary image size for displaying all labels without overlap, the function 
-`LuxorLabels.non_overlapping_labels_data` may be helpful.
 
 See inline docs, and see the test folder for examples.

@@ -240,12 +240,11 @@ function label_general(f::Function, labels::Vector{LabelPaperSpace};
     # When several optimized solutions exist,
     # prefer the already defined offset direction.
     if optim_vert && optim_horiz
-        throw("The hard problem.")
+        labels_optimized = optimize_offset_direction!(labels, f, kwds...)
     elseif optim_vert
-        #throw("The less hard, vertical problem.")
         labels_optimized = optimize_offset_direction_vertical!(labels, f, kwds...)
     elseif optim_horiz
-        throw("The less hard, horizontal problem.")
+        labels_optimized = optimize_offset_direction_horizontal!(labels, f, kwds...)
     else
         labels_optimized = labels
     end

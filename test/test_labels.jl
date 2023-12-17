@@ -111,29 +111,82 @@ snapshot(;cb = cb1,  fname = "test_interfaces_15.svg")
 @test length(it) == 10
 
 
-#
-# Find how fast the optimization becomes slow....
-#
-txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 1, cols = 10, dx = 10, dy = 10)
-#  10:     0.004572 seconds (8.63 k allocations: 487.656 KiB)
-@time it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor);
-txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 1, cols = 100, dx = 10, dy = 10)
-#  100:   0.424828 seconds (469.28 k allocations: 31.900 MiB)
-@time it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor);
-txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 1, cols = 200, dx = 10, dy = 10)
-# 200: 2.396099 seconds (1.86 M allocations: 132.544 MiB, 0.63% gc time)
-@time it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor);
-txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 1, cols = 300, dx = 10, dy = 10)
-# 300: 6.223864 seconds (4.16 M allocations: 296.359 MiB, 0.55% gc time)
-@time it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor);
-txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 1, cols = 400, dx = 10, dy = 10)
-# 400: 12.388219 seconds (7.37 M allocations: 531.959 MiB, 0.46% gc time)
-@time it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor);
-txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 1, cols = 500, dx = 10, dy = 10)
-# 500:  21.493384 seconds (11.50 M allocations: 825.824 MiB, 0.44% gc time)
-@time it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor);
+# Optimize offset directions horizontally
+# Drop labels with overlap based on prominence.
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+it, bbs = label_prioritized_optimize_horizontal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 cb1 += BoundingBox(O, O + (100, 0))
 snapshot(;cb = cb1,  fname = "test_interfaces_16.svg")
+@test it[1] == 10
+@test length(it) == 10
 
+
+#
+# Prepare a rectangular grid of labels 
+# We need a wider grid for longer labels
+txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 2, cols = 10, dx = 14, dy = 10)
+
+# Optimize offset directions, four quadrants
+# Drop labels with overlap based on prominence.
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+it, bbs = label_prioritized_optimize_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+# encompassing bounding box
+cb1 = foldr(+, bbs)
+cb1 += BoundingBox(O, O + (100, 0))
+snapshot(;cb = cb1,  fname = "test_interfaces_17.svg")
+@test it[1] == 10
+@test length(it) == 20
+
+
+# Test the remaining 'Keep all labels' variants
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+label_all_optimize_offset_horizontal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+snapshot(;cb = cb1,  fname = "test_interfaces_18.svg")
+
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+label_all_optimize_offset_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+snapshot(;cb = cb1,  fname = "test_interfaces_19.svg")
+
+Drawing(NaN, NaN, :rec)
+background(browncyan[5])
+label_all_optimize_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+snapshot(;cb = cb1,  fname = "test_interfaces_20.svg")
+
+#
+# Find how fast the optimization becomes slow....
+#
+function timetaken(; f = label_prioritized_optimize_vertical_offset, cols = 5)
+    rws = 2
+    _ , prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws, cols, dx = 1, dy = 10)
+    txt = fill("9", rws * cols)
+    t0 = Base.time_ns()
+    # We assume this won't be optimized away!
+    f(;txt, prominence, x, y, textcolor, shadowcolor)
+    Float64((Base.time_ns() - t0) / 1e9)
+end
+
+
+colrng = collect(1:11) .^2
+t_vert = map(colrng) do cols
+    @show cols
+    timetaken(; cols, f = label_prioritized_optimize_vertical_offset)
+end
+using UnicodePlots
+lineplot(colrng, t_vert; title = "Time [s] vs n")
+lineplot(colrng, t_vert.^(1/3); title =  "Time [s]^(1/3) vs n")
+# The time complexity is close to cubic for binary optimization
+
+# Let's compare with four possible label placements.
+colrng = collect(1:4) .^2
+t_all = map(colrng) do cols
+    @show cols
+    timetaken(; cols, f = label_prioritized_optimize_offset)
+end
+lineplot(colrng, t_all; title = "Time [s] vs n")
+lineplot(colrng, t_all.^(1/3); title =  "Time [s]^(1/3) vs n")

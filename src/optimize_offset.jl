@@ -1,24 +1,34 @@
-# TODO: Work on sorted by pri and order label vector.
-# If no solution is reached, drop labels from bottom,
-# and possibly by identifying which low-pri label 
-# is involved in the most constraints.
-
 function optimize_offset_direction_vertical!(labels, f; kwds...)
+    optimize_offset_direction!(labels, f, 1:2; kwds...)
+end
+
+function optimize_offset_direction_horizontal!(labels, f; kwds...)
+    optimize_offset_direction!(labels, f, [1, 4]; kwds...)
+end
+
+function optimize_offset_direction!(labels, f; kwds...)
+    optimize_offset_direction!(labels, f, 1:4; kwds...)
+end
+
+
+function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     check_kwds(;kwds...)
     model = Model(GLPK.Optimizer)
-    set_optimizer_attribute(model, "tm_lim", 60 * 1_000)
-    set_optimizer_attribute(model, "msg_lev", GLPK.GLP_MSG_OFF)
+    set_optimizer_attribute(model, "tm_lim", 30 * 1_000)
+    #set_optimizer_attribute(model, "msg_lev", GLPK.GLP_MSG_OFF)
     # The problem is one of label placement.
     # The number of labels
     n = length(labels)
     # The number of possible offset directions for each label
-    m = 2
-    # We have a vector of labels. To each assign one row of
+    m = length(direction_nos)
+    @debug "Bulding model. Size estimate: Labels n = $n, positions for each label m = $m. 
+            Number of combinations before adding overlap constraints: mⁿ = $(BigInt(m)^n)" 
+    # We have a vector of labels. For each assign one row of
     # binary variables. There are m columns in each row.
     # A value of 'true' or '1' at (i, j) indicates that label i
     # offsets it label to position j.
     # Define binary variables
-    @variable(model, c[1:n, 1:m], Bin)
+    @variable(model, c[1:n, direction_nos], Bin)
     # Each label i must have exactly one offset value j.
     # Each element of the row vector c[i, :] must take exactly one value
     for i in 1:n
@@ -33,13 +43,13 @@ function optimize_offset_direction_vertical!(labels, f; kwds...)
     # i.e. we may need to allow some labels crashing.
     constraint_by_label_index = Dict{Int64, Vector{JuMP.ConstraintRef}}()
     for i1 in 1:n
-        for j1 in 1:m
+        for j1 in direction_nos
             # Boundary boxes of text and label anchor
             bb1, bbp1 = boundary_box_of_label_offset_at_direction_no(f, labels[i1], j1; kwds...)
             for i2 in 1:n
                 # Skip along because of the constraint symmetry described above.
                 i2 <= i1 && continue
-                for j2 in 1:m
+                for j2 in direction_nos
                     # Boundary boxes potentially colliding text and label anchor
                     bb2, bbp2 = boundary_box_of_label_offset_at_direction_no(f, labels[i2], j2; kwds...)
                     if is_colliding(bb1, bb2) || is_colliding(bb1, bbp2) || is_colliding(bbp1, bb2)
@@ -54,36 +64,61 @@ function optimize_offset_direction_vertical!(labels, f; kwds...)
     end
     # Since we just need to find a feasible solution, no objective function is defined.
     # TODO Consider: Prefer the solution with most offsets in a preferred direction.
+    # TODO Consider: define callbacks and possibly unrestrain the most difficult constraint.
+    #      Ref. https://github.com/jump-dev/GLPK.jl#callbacks
     # 
     # If there are no possible label overlaps, there's nothing to optimize
     if ! isempty(constraint_by_label_index)
-        # Now try to find a solution. If unsuccessful, drop some (more) constraints.
-        tries = 0
-        while true
-            tries += 1 
-            @debug "Optimizing model with " num_constraints(model; count_variable_in_set_constraints = false) 
-            @assert num_constraints(model; count_variable_in_set_constraints = false) > n
-            optimize!(model)
-            # Check if the model has a solution
-            @debug termination_status(model)
-            if termination_status(model) == MathOptInterface.OPTIMAL
-                break
-            else
-                drop_constraints_for_most_problematic_label!(model, constraint_by_label_index, labels)
-            end
-            @assert tries < 1000 # May be increased if beneficial...
-        end
-        solution_c = value.(c)
+        sol_c = iterate_to_solution_by_dropping_constraints(model, n, constraint_by_label_index, labels, c, m)
         # Mutate the labels to match this solution.
         for i in 1:n
-            jsol = findfirst(e -> e == 1, solution_c[i, :])
-            label_offset_at_direction_no!(labels, i, jsol)
+            sol_c_row = sol_c[i, :]
+            sol_colno = findfirst(e -> e == 1, sol_c_row)
+            sol_dirno = direction_nos[sol_colno]
+            label_offset_at_direction_no!(labels, i, sol_dirno)
         end
     else
         @debug "No possible label overlab => no offset directions to optimize for"
     end
     labels
 end
+
+function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_label_index, labels, c, m)
+    tries = 0
+    lastsoltime = NaN
+    while true
+        tries += 1
+        @debug "Optimizing model with " num_constraints(model; count_variable_in_set_constraints = false) 
+        nconstr = num_constraints(model; count_variable_in_set_constraints = false)
+        if nconstr > 500
+            if m > 2
+                @warn "The number of constraints $nconstr > 500, consider restraining label offset to two positions only."
+            else
+                @warn "The number of constraints $nconstr > 500. The label offset optimization may take time."
+            end
+        end
+        @assert num_constraints(model; count_variable_in_set_constraints = false) > n
+        optimize!(model)
+        lastsoltime = MathOptInterface.get(model, MathOptInterface.SolveTimeSec())
+        @info "Last solve time [s], constraints, labels:" lastsoltime nconstr n
+        # Check if the model has a solution
+        @debug termination_status(model)
+        if termination_status(model) == MathOptInterface.OPTIMAL
+            break
+        else
+            drop_constraints_for_most_problematic_label!(model, constraint_by_label_index, labels)
+        end
+        @assert tries < 10000 # May be increased if beneficial...
+    end
+    # Extract and convert the solution stepwise        
+    sol_c1 = value.(c)
+    sol_c2 = Int.(round.(sol_c1))
+    # The container type is some exotic DenseAxisArray for speed. Julify it!
+    Matrix(sol_c2)
+end
+
+
+
 
 """
      boundary_box_of_label_offset_at_direction_no(f, label::LabelPaperSpace, j; kwds...)
@@ -132,30 +167,59 @@ function boundary_box_of_label_offset_at_direction_no(f, label::LabelPaperSpace,
 end
 
 function label_offset_at_direction_no(label::LabelPaperSpace, j; debug = false)
+    offsetbelow, halign = direction_tuple(label, j; debug)
     l = deepcopy(label)
-    if j == 1
-        # Keep the original (default) offset direction
-    elseif j == 2
-        # Flip the original (default) offset direction
-        debug && @debug "Flipping $(label.txt)"
-        l.offsetbelow = ! l.offsetbelow
-    else
-        throw("unexpected")
-    end
+    l.halign = halign
+    l.offsetbelow = offsetbelow
     l
 end
-function label_offset_at_direction_no!(labels, i, j)
-    if j == 1
-        # Keep the original (default) offset direction
-    elseif j == 2
-        # Flip the original (default) offset direction
-        @debug "Flipping $(labels[i].txt)"
-        labels[i].offsetbelow = ! labels[i].offsetbelow
-    else
-        throw("unexpected")
-    end
+function label_offset_at_direction_no!(labels, i::Int64, j::Int64; debug = true)
+    offsetbelow, halign = direction_tuple(labels[i], j; debug)
+    labels[i].halign = halign
+    labels[i].offsetbelow = offsetbelow
     labels[i]
 end
+
+function direction_tuple(l::LabelPaperSpace, j::Int; debug = false)
+    if j == 1
+        # Keep the original (default) vertical 
+        # Keep the horizontal offset direction
+        offsetbelow, halign = l.offsetbelow, l.halign
+    elseif j == 2
+        # Flip the vertical offset direction
+        # Keep the horizontal offset direction
+        debug && @debug "2 Flip vertical '$(l.txt)'"
+        offsetbelow, halign = ! l.offsetbelow, l.halign
+    elseif j == 3
+        # Flip the vertical offset direction
+        # Flip the horizontal offset direction
+        debug && @debug "3 Flip vertical and horizontal '$(l.txt)'"
+        offsetbelow = ! l.offsetbelow
+        if l.halign == :left
+            halign = :right 
+        elseif l.halign == :right
+            halign = :left 
+        else
+            throw("halign unexpected: $(l.halign)")
+        end
+    elseif j == 4
+        # Keep the vertical offset direction
+        # Flip the horizontal offset direction
+        offsetbelow = l.offsetbelow
+        debug && @debug "4 Flip horizontal '$(l.txt)'"
+        if l.halign == :left
+            halign = :right 
+        elseif l.halign == :right
+            halign = :left 
+        else
+            throw("halign unexpected: $(l.halign)")
+        end
+    else
+        throw("unexpected $j")
+    end
+    offsetbelow, halign
+end
+
 
 function store_constraintref_in_dict!(constraint_by_label_index, constraint_ref::T, label_key::Int64) where T
     v = get(constraint_by_label_index, label_key, Vector{T}())
@@ -213,7 +277,7 @@ function drop_constraints_for_most_problematic_label!(model, constraint_by_label
         # So remove it from dict the hard way...)
         for (key, label_constraints_vector) in constraint_by_label_index
             if cn ∈ label_constraints_vector
-                @debug "Label index $key is associated with $cn"
+                # @debug "Label index $key is associated with $cn"
                 filter!(c -> c !== cn, label_constraints_vector)
                 push!(constraint_by_label_index, key => label_constraints_vector)
             end

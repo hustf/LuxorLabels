@@ -71,22 +71,32 @@ function generate_labelsdata_circle_randomdist(; nlabels = 10, r = 500)
 end
 
 
-function makepic(;r = 500, nlabels = 10)
+function makepic(;f, r = 500, nlabels = 10, fname = "test_random_circle.svg")
     txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_circle_randomdist(;r, nlabels)
     Drawing(NaN, NaN, :rec)
-    background(browncyan[4])
+    background(browncyan[5])
     circle(O, r ; action = :stroke)
-    it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor)
+    it, bbs = f(;txt, prominence, x, y, textcolor, shadowcolor)
     # encompassing bounding box
     cb = BoundingBox(O + (-1.15r, -1.15r), O + (1.15r, 1.15r))
     cb = foldr(+, bbs, init = cb)
     if length(it) < nlabels
-        @info "Showing $(length(it)) of $nlabels, some would overlap"
+        if isnothing(match(r"prioritized", string(Symbol(f))))
+            @info "$(nlabels - length(it)) of $nlabels overlap and are shown."
+        else
+            @info "Showing $(length(it)) of $nlabels, some would overlap."
+        end
     end
-    snapshot(;cb,  fname = "test_interfaces_16.svg")
+    snapshot(;cb,  fname)
 end
 
-makepic()
-#   0.989230 seconds (467.43 k allocations: 31.166 MiB, 1.52% gc time)
-@time makepic(;nlabels = 80)
+makepic(; f = label_prioritized_optimize_vertical_offset)
+# With debug logging on:
+#[ Info: Showing 44 of 80, some would overlap.
+#  1.058 s (607479 allocations: 38.87 MiB)
+makepic(;nlabels = 80, f = label_prioritized_optimize_vertical_offset, fname = "test_random_circle_2.svg")
+makepic(;nlabels = 80, f = label_all_optimize_vertical_offset, fname = "test_random_circle_2.svg")
+# The time this takes varies wildly, probably depending on whether two important labels are interferring.
+# In that case, all other constraints are removed before the model can be resolved.
+makepic(;nlabels = 50, f = label_prioritized_optimize_offset, fname = "test_random_circle_4.svg")
 

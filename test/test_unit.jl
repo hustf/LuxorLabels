@@ -1,7 +1,7 @@
 using Test
 using LuxorLabels
 using LuxorLabels: labels_broadcast_plotfunc, is_colliding, non_overlapping_indexes_by_order,
-    non_overlapping_indexes_by_prominence_then_order
+    non_overlapping_indexes_by_prominence_then_order, label_offset_at_direction_no!, label_offset_at_direction_no
 import Luxor
 using Luxor: BoundingBox, boundingboxesintersect, O, Point, Drawing, circle, box
 using Luxor: background, setcolor, snapshot, finish
@@ -78,4 +78,25 @@ end
     @test labels_paper_space(;txt, prominence, x = 42)[6].x == 42
     @test labels_paper_space(;txt, prominence, x = 42)[6].txt == txt[6]
     @test_throws ArgumentError labels_paper_space(;txt, prominence, x, y =[ 100, 200])
+end 
+
+
+@testset "Offset directions for optimizations" begin
+    txt = ["0", "1", "2", "10", "20", "30"]
+    prominence = [1.0,   3,    3,    2,   2,   1]
+    x = parse.(Float64, txt) * 10
+    labels = labels_paper_space(;txt, prominence, x)
+    @test length(labels) == 6
+    label_offset_at_direction_no!(labels, 1, 1)
+    label_offset_at_direction_no!(labels, 2, 2)
+    label_offset_at_direction_no!(labels, 3, 3)
+    label_offset_at_direction_no!(labels, 4, 4)
+    @test labels[1].offsetbelow
+    @test labels[1].halign == :left
+    @test ! labels[2].offsetbelow
+    @test labels[2].halign == :left
+    @test ! labels[3].offsetbelow 
+    @test labels[3].halign == :right
+    @test labels[4].offsetbelow 
+    @test labels[4].halign == :right
 end 
