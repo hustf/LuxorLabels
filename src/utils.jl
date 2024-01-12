@@ -1,10 +1,5 @@
 # Helper functions that may be used from here or there
 
-model_x_to_paper_x(Ox_model_in_paper_space, model_to_paper_scale, x) = Ox_model_in_paper_space + (x * model_to_paper_scale)
-model_y_to_paper_y(Oy_model_in_paper_space, model_to_paper_scale, y) = Oy_model_in_paper_space + (y * model_to_paper_scale)
-paper_x_to_model_x(Ox_model_in_paper_space, model_to_paper_scale, paper_x) = (paper_x - Ox_model_in_paper_space) / model_to_paper_scale
-paper_y_to_model_y(Oy_model_in_paper_space, model_to_paper_scale, paper_y) = (paper_y - Oy_model_in_paper_space) / model_to_paper_scale
-
 """
     wrap_to_two_words_per_line(text::String)
     ---> String

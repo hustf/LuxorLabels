@@ -22,7 +22,8 @@ export label_prioritized_optimize_offset,
     label_prioritized_optimize_vertical_offset,
     label_prioritized_optimize_horizontal_offset,
     label_prioritized_optimize_diagonal_offset,
-    bounding_boxes_all_at_given_offset
+    indexes_and_bbs_all_at_given_offset,
+    indexes_and_bbs_prioritized_at_given_offset
 # These may be nice for debugging and prettier printing:
 export LabelPaperSpace,
     plot_label_bounding_box, labels_paper_space, labels_broadcast_plotfunc
@@ -130,6 +131,7 @@ function labels_paper_space(;kwds...)
     end
     label_paper_spaces
 end
+
 include("io.jl")
 include("utils.jl")
 include("overlap_prominence_order.jl")

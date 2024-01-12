@@ -1,14 +1,18 @@
 function optimize_offset_direction_vertical!(labels, f; kwds...)
+    check_kwds(;kwds...)
     optimize_offset_direction!(labels, f, 1:2; kwds...)
 end
 
 function optimize_offset_direction_horizontal!(labels, f; kwds...)
+    check_kwds(;kwds...)
     optimize_offset_direction!(labels, f, [1, 4]; kwds...)
 end
 function optimize_offset_direction_diagonal!(labels, f; kwds...)
+    check_kwds(;kwds...)
     optimize_offset_direction!(labels, f, [1, 3]; kwds...)
 end
 function optimize_offset_direction!(labels, f; kwds...)
+    check_kwds(;kwds...)
     # The complexity of allowing four possible offset directions
     # instead of two is extremely costly. And the graphics are
     # uglier too (if a leader line is included). So don't, please!
@@ -103,7 +107,7 @@ function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_lab
         @assert num_constraints(model; count_variable_in_set_constraints = false) > n
         optimize!(model)
         lastsoltime = MathOptInterface.get(model, MathOptInterface.SolveTimeSec())
-        @info "Last solve time [s], constraints, labels:" lastsoltime nconstr n
+        @debug "Last solve time [s], constraints, labels:" lastsoltime nconstr n
         # Check if the model has a solution
         @debug termination_status(model)
         if termination_status(model) == MathOptInterface.OPTIMAL

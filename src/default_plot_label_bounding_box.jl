@@ -2,7 +2,14 @@
     plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides = true, two_word_lines = true)
     ---> BoundingBox
 
-See inline comments. The bounding box only includes letters, not the leader line.
+# Keyword arguments / defaults
+
+  - noplot = false:        `true` returns the text bounding box without leaving any marks
+  - plot_guides = false:   `true` draws bounding box, offset radius from label anchor, and text anchor
+  - two_word_lines = true: `true` wraps text to two words per lines
+
+Note that the bounding box only includes letters, not the leader line. A bounding box
+surrounding the label anchor may be added by the calling function.
 """
 function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides = false, two_word_lines = true)
     # We prefer max two words per line in map labels

@@ -73,13 +73,18 @@ snapshot(;cb, fname = "test_interfaces_12.svg")
 #
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
-it, bbs = bounding_boxes_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false)
+it, bbs = indexes_and_bbs_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false)
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 snapshot(;cb, fname = "test_interfaces_13.svg")
 @test cb[1] == cb1[1]
 @test cb[2] == cb1[2]
 @test it == 1:900
+
+# Find out which would be prioritized, but without plotting:
+
+it, bbs = indexes_and_bbs_prioritized_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false)
+@test length(it) == 91
 
 #
 # Drop labels with overlap - considering prominence.

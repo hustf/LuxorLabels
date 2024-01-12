@@ -46,18 +46,21 @@ The user interface functions all take the same list of keyword arguments. They c
 - `label_prioritized_optimize_vertical_offset`
 - `label_prioritized_optimize_horizontal_offset`
 - `label_prioritized_optimize_diagonal_offset`
-- `bounding_boxes_all_at_given_offset`
+- `indexes_and_bbs_prioritized_at_given_offset`
 - `label_prioritized_optimize_offset`
 - `label_all_at_given_offset`
 - `label_all_optimize_vertical_offset`
 - `label_all_optimize_horizontal_offset`
 - `label_all_optimize_diagonal_offset`
 - `label_all_optimize_offset`
+- `indexes_and_bbs_all_at_given_offset`
 
 
 ## Tweak how labels look using keywords
 
-Keywords are used to generate labels data. See inline docs for `LabelPaperSpace`.
+Keywords are used to generate labels data. See inline docs for `LabelPaperSpace` and the default 
+plotting function, `plot_label_bounding_box`.
+
 Most keywords are similar to Luxor / Cairo's `text` functionality. 
 
 The `prominence`property affects how labels are prioritized, and their font size. 
