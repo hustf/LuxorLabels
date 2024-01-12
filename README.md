@@ -74,7 +74,7 @@ well as graphics.
 
 See the test folder for examples.
 
-Example of a ruler, with priority given to 0, 10, 20, 30:
+Example of a ruler. We should perhaps have given prominence 1 to 0, 10, 20, 30?
 
 <img src="resource/test_line_1.svg" alt = "test_line_1" style="display: inline-block; margin: 0 auto; max-width: 640px">
 
