@@ -1,7 +1,7 @@
 name = "LuxorLabels"
 uuid = "bc38f42f-d837-40aa-8305-15f3941c28e9"
 authors = ["hustf <hustf@users.noreply.github.com> and contributors"]
-version = "0.4.1"
+version = "0.4.2"
 
 [deps]
 GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"

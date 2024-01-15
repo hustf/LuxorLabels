@@ -46,11 +46,10 @@ function wrap_to_lines(text::String; max_one_word_length = 10, words_per_line = 
             wl *= word * '\n'
         elseif endofline && longword
             wl *= '\n' * word * '\n'
-            i += 1
-        elseif longword
+        elseif longword && ! endofline
             wl *= word * '\n'
             i += 1
-        else
+        elseif !longword && ! endofline
             wl *= word * ' '
         end
     end

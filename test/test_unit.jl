@@ -41,7 +41,8 @@ end
     @test wrap_to_lines("1 2 3, 4 5") == "1 2\n3, 4\n5"
     @test wrap_to_lines("1\n 2 3, 4 5") == "1 2\n3, 4\n5"
     @test wrap_to_lines("1\\n2 3, 4 5") == "1\n2 3,\n4 5"
-    @test wrap_to_lines("Ungdomsskulen sin skysstasjon ved fylkesvegen til Ovra") == "Ungdomsskulen\nsin \nskysstasjon\nved\nfylkesvegen\ntil Ovra"
+    @test wrap_to_lines("Ungdomsskulen sin skysstasjon ved fylkesvegen til Ovra er liten") == "Ungdomsskulen\nsin \nskysstasjon\nved \nfylkesvegen\ntil Ovra\ner liten"
+    @test wrap_to_lines("Hareid ungdomsskule fv. 61") == "Hareid \nungdomsskule\nfv. 61"
 end
 
 @testset "plot_label_bounding_box" begin

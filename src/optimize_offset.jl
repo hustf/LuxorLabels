@@ -23,6 +23,7 @@ end
 function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     check_kwds(;kwds...)
     model = Model(GLPK.Optimizer)
+    # DEBUG (doesn't help much): JuMP.set_attribute(model, "msg_lev", GLPK.GLP_MSG_ALL) 
     set_optimizer_attribute(model, "tm_lim", 30 * 1_000)
     #set_optimizer_attribute(model, "msg_lev", GLPK.GLP_MSG_OFF)
     # The problem is one of label placement.
@@ -42,8 +43,9 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     # Each element of the row vector c[i, :] must take exactly one value
     for i in 1:n
         @constraint(model, sum(c[i, :]) == 1)
+        # TODO note: An alternative approach to find the 'most problematic' label 
+        # would be to optimize after adding each constraint. That's not what we do now. 
     end
-
     # Some positions possibly crashes. Loop over labels and offset directions '(label-direction)'
     # to add one constraint for each possible crash. Each constraint is symmetrical,
     # so not allowing (1-2) to crash with (4-1) also disallows (4-1) crashing with (1-2).
@@ -65,7 +67,7 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
                         constraint_ref = @constraint(model, c[i1, j1] + c[i2, j2] <= 1)
                         store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i1)
                         store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i2)
-                        @debug "constraint  ($i1, $j1 ) <=> ($i2, $j2)" maxlog = 5
+                        @debug "constraint  ($i1, $j1 ) <=> ($i2, $j2)" maxlog = 500
                     end
                 end
             end
@@ -268,7 +270,9 @@ function label_index_to_drop_constraints_for(constraint_by_label_index::Dict{Int
     end
     # debug @show n all constrained max_prom_val with_max_prominence max_no_constraints with_max_no_constraints
     # d) Label index to drop constraints for
-    with_max_no_constraints[end]
+    drop_index = with_max_no_constraints[end]
+    @debug "Drop constraints candidate: $(drop_index) $(labels[drop_index].txt)"
+    drop_index
 end
 
 
