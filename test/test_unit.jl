@@ -35,11 +35,13 @@ end
     @test non_overlapping_indexes_by_prominence_then_order([b1, b2, b3], [2.0, 2.0, 1]) == [3, 1]
 end
 
-
-
-@testset "wrap_to_two_words_per_line" begin
-    @test LuxorLabels.wrap_to_two_words_per_line("Label\ntxt") == "Label txt"
-    @test LuxorLabels.wrap_to_two_words_per_line("Un dau tri, pedwar\n pump") == "Un dau\ntri, pedwar\npump"
+@testset "wrap_to_lines" begin
+    @test LuxorLabels.wrap_to_lines("Label\ntxt") == "Label txt"
+    @test LuxorLabels.wrap_to_lines("Un dau tri, pedwar\n pump") == "Un dau\ntri, pedwar\npump"
+    @test wrap_to_lines("1 2 3, 4 5") == "1 2\n3, 4\n5"
+    @test wrap_to_lines("1\n 2 3, 4 5") == "1 2\n3, 4\n5"
+    @test wrap_to_lines("1\\n2 3, 4 5") == "1\n2 3,\n4 5"
+    @test wrap_to_lines("Ungdomsskulen sin skysstasjon ved fylkesvegen til Ovra") == "Ungdomsskulen\nsin \nskysstasjon\nved\nfylkesvegen\ntil Ovra"
 end
 
 @testset "plot_label_bounding_box" begin
@@ -79,7 +81,7 @@ end
     @test labels_paper_space(;txt, prominence, x = 42)[6].txt == txt[6]
     @test labels_paper_space(;txt, prominence, x = 42, offsetbelow = false)[6].txt == txt[6]
     @test_throws ArgumentError labels_paper_space(;txt, prominence, x, y =[ 100, 200])
-end 
+end
 
 
 @testset "Offset directions for optimizations" begin
@@ -96,8 +98,8 @@ end
     @test labels[1].halign == :left
     @test ! labels[2].offsetbelow
     @test labels[2].halign == :left
-    @test ! labels[3].offsetbelow 
+    @test ! labels[3].offsetbelow
     @test labels[3].halign == :right
-    @test labels[4].offsetbelow 
+    @test labels[4].offsetbelow
     @test labels[4].halign == :right
-end 
+end

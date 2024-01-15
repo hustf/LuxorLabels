@@ -21,7 +21,7 @@ end
 using UnicodePlots
 lineplot(colrng, t_vert; title = "Time [s] vs n")
 lineplot(colrng, t_vert.^(1/3); title =  "Time [s]^(1/3) vs n")
-# 
+#
 # ==> The time complexity is close to cubic for binary optimization.
 
 # Let's compare with four possible label placements.

@@ -19,7 +19,7 @@ f(label) = text(label.txt, label.x, label.y)
 Drawing(NaN, NaN, :rec)
 background("salmon")
 pts = labels_broadcast_plotfunc(f, labels)
-cb = BoundingBox(Point(-10, -20), pts[end] + (50, 0)) 
+cb = BoundingBox(Point(-10, -20), pts[end] + (50, 0))
 setcolor("blue")
 box(cb, :dash)
 circle(0, 0, 10, :stroke)
@@ -62,8 +62,8 @@ snapshot(;fname = "test_line_2.svg", cb)
 
 Drawing(NaN, NaN, :rec)
 background("salmon")
-# To drop the overlaps, call this higher-level function. We 
-# get the displayed labels indices, as well as the bounding boxes 
+# To drop the overlaps, call this higher-level function. We
+# get the displayed labels indices, as well as the bounding boxes
 # for those labels.
 it, bbs = label_prioritized_at_given_offset(; f = bb_of_simple_label, labels)
 @test length(it) == 21

@@ -27,7 +27,7 @@ function indexes_and_bbs_all_at_given_offset(; kwds...)
     @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
-    label_general(; optim_vert = false, 
+    label_general(; optim_vert = false,
                     optim_horiz = false,
                     prioritize = false,
                     plot = false,
@@ -52,7 +52,7 @@ function indexes_and_bbs_prioritized_at_given_offset(; kwds...)
     @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
-    label_general(; optim_vert = false, 
+    label_general(; optim_vert = false,
                     optim_horiz = false,
                     prioritize = true,
                     plot = false,
@@ -74,7 +74,7 @@ function label_prioritized_at_given_offset(; kwds...)
     @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
-    label_general(; optim_vert = false, 
+    label_general(; optim_vert = false,
                     optim_horiz = false,
                     kwds...)
 end
@@ -117,7 +117,7 @@ function label_prioritized_optimize_horizontal_offset(; kwds...)
     @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
-    label_general(; optim_vert = false, 
+    label_general(; optim_vert = false,
                     kwds...)
 end
 
@@ -142,7 +142,7 @@ function label_prioritized_optimize_diagonal_offset(; kwds...)
     @assert :plot        ∉ keys(kwds)
     label_general(; optim_vert = false,
                     optim_horiz = false,
-                    optim_diagon = true, 
+                    optim_diagon = true,
                     kwds...)
 end
 
@@ -151,7 +151,7 @@ end
     ---> prioritized_indexes, boundary boxes
 
 - Most powerful / abstract.
-- Optimize offset up -down, right - left or diagonally. 
+- Optimize offset up -down, right - left or diagonally.
 - Drop labels overlapped by others based on prominence and order.
 
 See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
@@ -184,7 +184,7 @@ function label_all_at_given_offset(;  kwds...)
     @assert :optim_diagon ∉ keys(kwds)
     @assert :prioritize  ∉ keys(kwds)
     @assert :plot        ∉ keys(kwds)
-    label_general(; optim_vert = false, 
+    label_general(; optim_vert = false,
                     optim_horiz = false,
                     prioritize = false,
                     kwds...)
@@ -262,7 +262,7 @@ end
     label_all_optimize_offset(; kwds...)
     ---> prioritized_indexes, boundary boxes
 
-- Optimize offset up, down, right, left. 
+- Optimize offset up, down, right, left.
 
 See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
 """
@@ -284,17 +284,17 @@ end
 """
     label_general(; f::Function = plot_label_bounding_box,
     kwds...)
-    label_general(f::Function, labels::Vector{LabelPaperSpace}; 
-            optim_vert = true, 
+    label_general(f::Function, labels::Vector{LabelPaperSpace};
+            optim_vert = true,
             optim_horiz = true,
             optim_diagon = false,
             prioritize = true,
-            plot = true, 
+            plot = true,
             kwds...)
     ---> prioritized_indexes, boundary boxes
 
 This is the general function behind these more user-friendly interfaces:
-    
+
 - `indexes_and_bbs_all_at_given_offset`
 - `label_all_at_given_offset`
 - `label_all_optimize_vertical_offset`
@@ -311,10 +311,10 @@ This is the general function behind these more user-friendly interfaces:
 Other keywords are passed on to the plotting function `f` = `plot_label_bounding_box`,
 see that documentation.
 
-Note that `plot` = true is mostly equivalent to `noplot` = false. 
+Note that `plot` = true is mostly equivalent to `noplot` = false.
 It is set by `indexes_and_bbs_all_at_given_offset` and `indexes_and_bbs_prioritized_at_given_offset`.
 
-`noplot` is a plotting function keyword defined by `plot_label_bounding_box`. 
+`noplot` is a plotting function keyword defined by `plot_label_bounding_box`.
 Its use takes a little more time, but does not exclude drawing guides.
 """
 function label_general(; f::Function = plot_label_bounding_box,
@@ -331,7 +331,7 @@ function label_general(; f::Function = plot_label_bounding_box,
     else
         throw("labels not defined.")
     end
-    # Remove the keywords relevant to 'labels', because we'll pass 
+    # Remove the keywords relevant to 'labels', because we'll pass
     # the generated labels as a normal argument.
     kwds_dict = filter(kwds -> kwds[1] != :labels, kwds)
     @assert ! isempty(labels)
@@ -340,12 +340,12 @@ function label_general(; f::Function = plot_label_bounding_box,
     kwds_plotfunc = setdiff(kwds_dict, kwds_labels)
     label_general(f, labels; kwds_plotfunc...)
 end
-function label_general(f::Function, labels::Vector{LabelPaperSpace}; 
-        optim_vert = true, 
+function label_general(f::Function, labels::Vector{LabelPaperSpace};
+        optim_vert = true,
         optim_horiz = true,
         optim_diagon = false,
         prioritize = true,
-        plot = true, 
+        plot = true,
         kwds...)
     check_kwds(;kwds...)
     @assert ! isempty(labels)
@@ -370,20 +370,20 @@ function label_general(f::Function, labels::Vector{LabelPaperSpace};
     # Prioritize labels
     if prioritize
         # If some labels are overlapping after offset optimization,
-        # follow rules: 
+        # follow rules:
         # Prominence 1 is preferred over prominence 2 etc.
-        # Low index labels (in the vector order) is preferred over high index. 
+        # Low index labels (in the vector order) is preferred over high index.
         prioritized_indexes = non_overlapping_indexes_by_prominence_then_order(bbs_optimized, labels_optimized)
     else
         prioritized_indexes = 1:length(labels_optimized)
     end
     labels_prioritized = labels_optimized[prioritized_indexes]
     bbs_prioritized = bbs_optimized[prioritized_indexes]
-    # 
+    #
     if ! plot
         return prioritized_indexes, bbs_prioritized
     else
-        # When plotting, we do it in reverse order. The most 
+        # When plotting, we do it in reverse order. The most
         # important labels are plotted last. Thus,
         # lower prominence labels leader lines won't overlap
         # prominent labels.
@@ -395,7 +395,7 @@ function label_general(f::Function, labels::Vector{LabelPaperSpace};
         end
         if length(dropped_indexes) > 0
             @info "LuxorLabels drops $(length(dropped_indexes)) labels: $msg"
-        else 
+        else
             @debug "LuxorLabels drops no labels."
         end
         return prioritized_indexes, labels_broadcast_plotfunc(f, reverse(labels_prioritized); kwds...)

@@ -7,7 +7,7 @@ using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +,
 import JuMP
 using GLPK
 import GLPK.MathOptInterface
-using JuMP: set_optimizer_attribute, @variable, @constraint, optimize!, @objective, 
+using JuMP: set_optimizer_attribute, @variable, @constraint, optimize!, @objective,
     termination_status, Model, value, num_constraints, delete, unregister
 
 
@@ -26,7 +26,8 @@ export label_prioritized_optimize_offset,
     indexes_and_bbs_prioritized_at_given_offset
 # These may be nice for debugging and prettier printing:
 export LabelPaperSpace,
-    plot_label_bounding_box, labels_paper_space, labels_broadcast_plotfunc
+    plot_label_bounding_box, labels_paper_space, labels_broadcast_plotfunc,
+    wrap_to_lines
 
 """
 Keywords and defaults values for single instances of LabelPaperSpace.
@@ -108,7 +109,7 @@ function labels_paper_space(;kwds...)
             1 # Strings and other types are all of 'length' 1 in this context.
         end
     end
-    if ! isempty(setdiff(unique(lengths), 1, maximum(lengths))) 
+    if ! isempty(setdiff(unique(lengths), 1, maximum(lengths)))
         throw(ArgumentError("The length of keyword argument values should be either identical or 1. Currrent lengths are $(lengths)"))
     end
     # Create a vector to store the LabelPaperSpace objects
@@ -121,7 +122,7 @@ function labels_paper_space(;kwds...)
             if val isa AbstractArray
                 kwargs_for_this_instance[key] = val[mod1(i, length(val))]
             else
-                # e.g. a keyword like 'halign' can be specified as ':right' and apply to 
+                # e.g. a keyword like 'halign' can be specified as ':right' and apply to
                 # all the generated labels.
                 kwargs_for_this_instance[key] = val
             end
@@ -152,7 +153,7 @@ julia> labels_broadcast_plotfunc(x -> string(x), ["abc", "def"])
  "abc"
  "def"
 
-julia> fi(a; kw = "nokw") = string(a) * " " * kw 
+julia> fi(a; kw = "nokw") = string(a) * " " * kw
 fi (generic function with 1 method)
 
 julia> labels_broadcast_plotfunc(fi, ["abc", "def"]; kw = "kw")

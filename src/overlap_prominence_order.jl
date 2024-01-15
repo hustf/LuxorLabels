@@ -42,7 +42,7 @@ end
     non_overlapping_indexes_by_order(sorted_boundingboxes::Vector{T}) where T <: BoundingBox
     ---> Vector{Int64}
 
-Return the index of boundingboxes which can be placed in the given order 
+Return the index of boundingboxes which can be placed in the given order
 without any overlapping previous boundingboxes.
 
 If no overlap, returns 1..length(sorted_boundingboxes).
@@ -58,7 +58,7 @@ function non_overlapping_indexes_by_order(sorted_boundingboxes::Vector{T}) where
             # We can select this one without crashing with the previously selected boxes
             push!(selected_boundingboxes, b)
             push!(selected_indexes, i)
-        end 
+        end
     end
     if length(selected_indexes) < length(sorted_boundingboxes)
         @debug "Selected $(length(selected_indexes)) of $(length(sorted_boundingboxes)) non-overlapping bounding boxes"

@@ -1,5 +1,5 @@
 # Instead of a multitude of keywords to a few functions, our interface
-# consists of a lot of functions ("the keywords are in the function name"). 
+# consists of a lot of functions ("the keywords are in the function name").
 # Test the interface functions, all with the default label plotting function.
 using Test
 using LuxorLabels
@@ -60,7 +60,7 @@ cb = foldr(+, bbs)
 snapshot(;cb, fname = "test_interfaces_11.svg")
 @test it == 1:900
 
-# Test that we can pass keywords through the pipeline that ends up in the 
+# Test that we can pass keywords through the pipeline that ends up in the
 # label plotting function (if they're not relevant to defining LabelPaperSpace objects).
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
@@ -145,7 +145,7 @@ snapshot(;cb = cb1,  fname = "test_interfaces_17.svg")
 
 
 #
-# Prepare a rectangular grid of labels 
+# Prepare a rectangular grid of labels
 # We need a wider grid for longer labels
 txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(;  rws = 2, cols = 10, dx = 14, dy = 10)
 

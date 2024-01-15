@@ -30,8 +30,8 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     n = length(labels)
     # The number of possible offset directions for each label
     m = length(direction_nos)
-    @debug "Bulding model. Size estimate: Labels n = $n, positions for each label m = $m. 
-            Number of combinations before adding overlap constraints: mⁿ = $(BigInt(m)^n)" 
+    @debug "Bulding model. Size estimate: Labels n = $n, positions for each label m = $m.
+            Number of combinations before adding overlap constraints: mⁿ = $(BigInt(m)^n)"
     # We have a vector of labels. For each assign one row of
     # binary variables. There are m columns in each row.
     # A value of 'true' or '1' at (i, j) indicates that label i
@@ -75,7 +75,7 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     # TODO Consider: Prefer the solution with most offsets in a preferred direction.
     # TODO Consider: define callbacks and possibly unrestrain the most difficult constraint.
     #      Ref. https://github.com/jump-dev/GLPK.jl#callbacks
-    # 
+    #
     # If there are no possible label overlaps, there's nothing to optimize
     if ! isempty(constraint_by_label_index)
         sol_c = iterate_to_solution_by_dropping_constraints(model, n, constraint_by_label_index, labels, c, m)
@@ -97,7 +97,7 @@ function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_lab
     lastsoltime = NaN
     while true
         tries += 1
-        @debug "Optimizing model with " num_constraints(model; count_variable_in_set_constraints = false) 
+        @debug "Optimizing model with " num_constraints(model; count_variable_in_set_constraints = false)
         nconstr = num_constraints(model; count_variable_in_set_constraints = false)
         if nconstr > 500
             if m > 2
@@ -117,7 +117,7 @@ function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_lab
         end
         @assert tries < 10000 # May be increased if beneficial...
     end
-    # Extract and convert the solution stepwise        
+    # Extract and convert the solution stepwise
     sol_c1 = value.(c)
     sol_c2 = Int.(round.(sol_c1))
     # The container type is some exotic DenseAxisArray for speed. Julify it!
@@ -131,7 +131,7 @@ end
      boundary_box_of_label_offset_at_direction_no(f, label::LabelPaperSpace, j; kwds...)
     ---> Vector{BoundingBox}
 
-This is called by `optimize_offset_direction_vertical!` and returns TWO bounding boxes: 
+This is called by `optimize_offset_direction_vertical!` and returns TWO bounding boxes:
 
 - f typically returns one box covering the text of the label.
 - Additionally, this returns a 'single point box' covering the label anchor (where it's pointing at)
@@ -141,7 +141,7 @@ Reason being, we don't want labels to overlap where other labels are pointing at
 # Example
 ```
 julia> l
-LabelPaperSpace(txt                    = "1", 
+LabelPaperSpace(txt                    = "1",
                 prominence             = 3.0,
                 x                      = 10.0,
                 y                      = 10.0,
@@ -189,7 +189,7 @@ end
 
 function direction_tuple(l::LabelPaperSpace, j::Int; debug = false)
     if j == 1
-        # Keep the original (default) vertical 
+        # Keep the original (default) vertical
         # Keep the horizontal offset direction
         offsetbelow, halign = l.offsetbelow, l.halign
     elseif j == 2
@@ -203,9 +203,9 @@ function direction_tuple(l::LabelPaperSpace, j::Int; debug = false)
         debug && @debug "3 Flip vertical and horizontal '$(l.txt)'"
         offsetbelow = ! l.offsetbelow
         if l.halign == :left
-            halign = :right 
+            halign = :right
         elseif l.halign == :right
-            halign = :left 
+            halign = :left
         else
             throw("halign unexpected: $(l.halign)")
         end
@@ -215,9 +215,9 @@ function direction_tuple(l::LabelPaperSpace, j::Int; debug = false)
         offsetbelow = l.offsetbelow
         debug && @debug "4 Flip horizontal '$(l.txt)'"
         if l.halign == :left
-            halign = :right 
+            halign = :right
         elseif l.halign == :right
-            halign = :left 
+            halign = :left
         else
             throw("halign unexpected: $(l.halign)")
         end

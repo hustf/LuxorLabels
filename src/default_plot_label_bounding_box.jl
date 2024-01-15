@@ -13,7 +13,7 @@ surrounding the label anchor may be added by the calling function.
 """
 function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides = false, two_word_lines = true)
     # We prefer max two words per line in map labels
-    ftext = two_word_lines ? wrap_to_two_words_per_line(l.txt) : l.txt
+    ftext = two_word_lines ? wrap_to_lines(l.txt) : l.txt
     # We'll use the 'toy' text, so need to split text into lines.
     lins = string.(split(ftext, '\n'))
     nlins = length(lins)
@@ -28,10 +28,10 @@ function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides
     xb, yb, w, _, _, _ = textextents(lins[1])
     for i in 2:nlins
         xbi, ybi, wi, _, _, _ = textextents(lins[i])
-        if xbi < xb 
+        if xbi < xb
             xb = xbi
         end
-        if ybi < yb 
+        if ybi < yb
             yb = ybi
         end
         if wi > w
@@ -50,12 +50,12 @@ function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides
     leaderend = pointat + (le - δle) .* (cos(α), sin(α))
     # yte position of first line baseline
     δy = l.offsetbelow ? 0.0 : - (nlins - 1) * em
-    yte = l.y + offs[2] + δy 
+    yte = l.y + offs[2] + δy
     # y top of boundary box
     ytl = yte + yb
     # The leader does not point towards
-    # the text anchor. Rather, it points to the 'fixed' point. 
-    # The text anchor is placed 1 / 3 of line length 
+    # the text anchor. Rather, it points to the 'fixed' point.
+    # The text anchor is placed 1 / 3 of line length
     # to the left of the 'fixed' point (for left aligned text).
     # xte position of first line text anchor point.
     δx = l.halign == :left ? -w / 3 : (-2w / 3)
@@ -74,7 +74,7 @@ function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides
     # to retrieve which parts it would cover.
     # If that's okay, it is called again with this keyword:
     if ! noplot
-        # Text shadow 
+        # Text shadow
         sethue(l.shadowcolor)
         for i in eachindex(lins)
             text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em) + shadowoffset; halign = l.halign)
@@ -91,7 +91,7 @@ function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides
         # Text
         sethue(l.textcolor)
         for i in eachindex(lins)
-            text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em);  halign = l.halign)            
+            text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em);  halign = l.halign)
         end
         if plot_guides
             box(bb, :stroke)
@@ -102,7 +102,7 @@ function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides
             circle(l.x, l.y, hypot(l.offset...), :stroke)
             # text anchor
             circle(Point(xte, yte) + (δxalign, 0), fs / 5, :stroke)
-        end 
+        end
     end
     # Revert Cairo state
     Luxor.grestore()

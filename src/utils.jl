@@ -1,36 +1,60 @@
 # Helper functions that may be used from here or there
 
 """
-    wrap_to_two_words_per_line(text::String)
+   wrap_to_lines(text::String; max_one_word_length = 10, words_per_line = 2)
     ---> String
+
+Two (by default) words per line, except if:
+- A word is 10 (default) characters or more
+- You force line breaks by escaping:  '\\n'.
 
 # Example
 ```
-julia> RouteMap.wrap_to_two_words_per_line("Un dau tri, pedwar\n pump") |> println
-Un dau
-tri, pedwar
-pump
+julia> wrap_to_lines("1 2 3, 4 5") |> println
+1 2
+3, 4
+5
 
-julia> RouteMap.wrap_to_two_words_per_line("Un\n dau tri, pedwar pump") |> println
-Un dau
-tri, pedwar
-pump
+julia> wrap_to_lines("1\n 2 3, 4 5") |> println
+1 2
+3, 4
+5
+
+julia> wrap_to_lines("1\\n2 3, 4 5") |> println
+1
+2 3,
+4 5
+
+julia> wrap_to_lines("Ungdomsskulen sin skysstasjon ved fylkesvegen til Ovra") |> println
+Ungdomsskulen
+sin
+skysstasjon
+ved
+fylkesvegen
+til Ovra
 ```
 """
-function wrap_to_two_words_per_line(text::String)
+function wrap_to_lines(text::String; max_one_word_length = 10, words_per_line = 2)
     words = split(text)
-    wrapped_text = ""
-    for i in 1:length(words)
-        wrapped_text *= words[i]
-        if i < length(words)
-            if i % 2 == 0
-                wrapped_text *= "\n"
-            else
-                wrapped_text *= " "
-            end
+    wl = ""
+    i = 0
+    for word in words
+        i += 1
+        endofline = i % words_per_line == 0
+        longword = length(word) >= max_one_word_length
+        if endofline && ! longword
+            wl *= word * '\n'
+        elseif endofline && longword
+            wl *= '\n' * word * '\n'
+            i += 1
+        elseif longword
+            wl *= word * '\n'
+            i += 1
+        else
+            wl *= word * ' '
         end
     end
-    return wrapped_text
+    return strip(replace(wl, "\\n" => '\n'))
 end
 
 
@@ -39,7 +63,7 @@ end
     ---> Float64
 
 This depends on the current 'Toy API' text size, and can be changed with
-fontsize(fs). 
+fontsize(fs).
 
 # Example
 ```
@@ -66,7 +90,7 @@ width_of_toy_string(s::String) = textextents(s)[3]
     check_kwds(;kwds...)
     ---> true
 
-Simple check for common syntax error. 
+Simple check for common syntax error.
 """
 function check_kwds(;kwds...)
     if !isempty(kwds)
