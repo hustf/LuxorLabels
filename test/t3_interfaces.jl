@@ -49,7 +49,7 @@ background(browncyan[5])
 it, bbs = label_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor)
 # encompassing bounding box
 cb = foldr(+, bbs)
-snapshot(;cb, fname = "test_interfaces_10.svg")
+snapshot(;cb, fname = "t3_interfaces_10.svg")
 
 # Slightly prettier without leader lines:
 Drawing(NaN, NaN, :rec)
@@ -57,7 +57,7 @@ background(browncyan[5])
 it, bbs = label_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false)
 # encompassing bounding box
 cb = foldr(+, bbs)
-snapshot(;cb, fname = "test_interfaces_11.svg")
+snapshot(;cb, fname = "t3_interfaces_11.svg")
 @test it == 1:900
 
 # Test that we can pass keywords through the pipeline that ends up in the
@@ -65,7 +65,7 @@ snapshot(;cb, fname = "test_interfaces_11.svg")
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false, plot_guides = true)
-snapshot(;cb, fname = "test_interfaces_12.svg")
+snapshot(;cb, fname = "t3_interfaces_12.svg")
 
 
 #
@@ -76,7 +76,7 @@ background(browncyan[5])
 it, bbs = indexes_and_bbs_all_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, leaderline = false)
 # encompassing bounding box
 cb1 = foldr(+, bbs)
-snapshot(;cb, fname = "test_interfaces_13.svg")
+snapshot(;cb, fname = "t3_interfaces_13.svg")
 @test cb[1] == cb1[1]
 @test cb[2] == cb1[2]
 @test it == 1:900
@@ -94,7 +94,7 @@ background(browncyan[5])
 it, bbs = label_prioritized_at_given_offset(;txt, prominence, x, y, textcolor, shadowcolor, halign = :right)
 # encompassing bounding box
 cb1 = foldr(+, bbs)
-snapshot(;cb = cb1, fname = "test_interfaces_14.svg")
+snapshot(;cb = cb1, fname = "t3_interfaces_14.svg")
 @test it[1] == 10
 @test length(it) == 91
 
@@ -113,7 +113,7 @@ it, bbs = label_prioritized_optimize_vertical_offset(;txt, prominence, x, y, tex
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 cb1 += BoundingBox(O, O + (100, 0))
-snapshot(;cb = cb1,  fname = "test_interfaces_15.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_15.svg")
 @test it[1] == 10
 @test length(it) == 10
 
@@ -126,7 +126,7 @@ it, bbs = label_prioritized_optimize_horizontal_offset(;txt, prominence, x, y, t
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 cb1 += BoundingBox(O, O + (100, 0))
-snapshot(;cb = cb1,  fname = "test_interfaces_16.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_16.svg")
 @test it[1] == 10
 @test length(it) == 10
 
@@ -138,7 +138,7 @@ it, bbs = label_prioritized_optimize_diagonal_offset(;txt, prominence, x, y, tex
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 cb1 += BoundingBox(O, O + (100, 0))
-snapshot(;cb = cb1,  fname = "test_interfaces_17.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_17.svg")
 @test it[1] == 10
 @test length(it) == 10
 
@@ -157,7 +157,7 @@ it, bbs = label_prioritized_optimize_offset(;txt, prominence, x, y, textcolor, s
 # encompassing bounding box
 cb1 = foldr(+, bbs)
 cb1 += BoundingBox(O, O + (100, 0))
-snapshot(;cb = cb1,  fname = "test_interfaces_18.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_18.svg")
 @test it[1] == 10
 @test length(it) == 20
 
@@ -166,26 +166,26 @@ snapshot(;cb = cb1,  fname = "test_interfaces_18.svg")
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_optimize_horizontal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
-snapshot(;cb = cb1,  fname = "test_interfaces_19.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_19.svg")
 
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_optimize_vertical_offset(;txt, prominence, x, y, textcolor, shadowcolor)
-snapshot(;cb = cb1,  fname = "test_interfaces_20.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_20.svg")
 
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_optimize_diagonal_offset(;txt, prominence, x, y, textcolor, shadowcolor)
-snapshot(;cb = cb1,  fname = "test_interfaces_21.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_21.svg")
 
 
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_optimize_diagonal_offset(;txt, prominence, x, y, textcolor, shadowcolor, halign = :right)
-snapshot(;cb = cb1,  fname = "test_interfaces_22.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_22.svg")
 
 Drawing(NaN, NaN, :rec)
 background(browncyan[5])
 label_all_optimize_offset(;txt, prominence, x, y, textcolor, shadowcolor)
-snapshot(;cb = cb1,  fname = "test_interfaces_23.svg")
+snapshot(;cb = cb1,  fname = "t3_interfaces_23.svg")
 

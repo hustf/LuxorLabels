@@ -76,16 +76,16 @@ See the test folder for examples.
 
 Example of a ruler. We should perhaps have given prominence 1 to 0, 10, 20, 30?
 
-<img src="resource/test_line_1.svg" alt = "test_line_1" style="display: inline-block; margin: 0 auto; max-width: 640px">
+<img src="resource/t2_line_1.svg" alt = "t2_line_1" style="display: inline-block; margin: 0 auto; max-width: 640px">
 
 Example of a box, where prominence is given to 0, 10, 20, 30. 2nd priority is given to 5, 15 etc.:
 
-<img src="resource/test_interfaces_14.svg" alt = "spaces" style="display: inline-block; margin: 0 auto; max-width: 640px">
+<img src="resource/t3_interfaces_14.svg" alt = "spaces" style="display: inline-block; margin: 0 auto; max-width: 640px">
 
 
 Example of a default label in all four (default) offset positions. Keyword `plot_guides` is set to `true`.
 
-<img src="resource/test_unit_4.svg" alt = "label guides" style="display: inline-block; margin: 0 auto; max-width: 640px">
+<img src="resource/t1_unit_4.svg" alt = "label guides" style="display: inline-block; margin: 0 auto; max-width: 640px">
 
 
 ## References

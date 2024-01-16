@@ -43,6 +43,19 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     # Each element of the row vector c[i, :] must take exactly one value
     for i in 1:n
         @constraint(model, sum(c[i, :]) == 1)
+        #=
+        if ! labels[i].collision_free
+            @constraint(model, sum(c[i, :]) == 1)
+        else
+            for dirno in direction_nos
+                if dirno == 1
+                    @constraint(model, c[i, dirno] == 1)
+                else
+                    @constraint(model, c[i, dirno] == 0)
+                end
+            end
+        end
+        =#
         # TODO note: An alternative approach to find the 'most problematic' label 
         # would be to optimize after adding each constraint. That's not what we do now. 
     end
@@ -69,6 +82,17 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
                         store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i2)
                         @debug "constraint  ($i1, $j1 ) <=> ($i2, $j2)" maxlog = 500
                     end
+                    #=
+                    # Any label can be marked as collision-free!
+                    if ! (labels[i1].collision_free || labels[i2].collision_free)
+                        if is_colliding(bb1, bb2) || is_colliding(bb1, bbp2) || is_colliding(bbp1, bb2)
+                            constraint_ref = @constraint(model, c[i1, j1] + c[i2, j2] <= 1)
+                            store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i1)
+                            store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i2)
+                            @debug "constraint  ($i1, $j1 ) <=> ($i2, $j2)" maxlog = 500
+                        end
+                    end
+                    =#
                 end
             end
         end

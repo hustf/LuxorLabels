@@ -3,7 +3,7 @@ import Luxor
 import Base: show
 using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +,
     @layer, fontsize, textextents, sethue, text, setdash, line, box,
-    circle
+    circle, getline, setline
 import JuMP
 using GLPK
 import GLPK.MathOptInterface
@@ -56,6 +56,7 @@ Keywords and defaults values for single instances of LabelPaperSpace.
     shadowcolor::Luxor.Colorant = Luxor.RGB{Float64}(0.342992,0.650614,0.772702)
     textcolor::Luxor.Colorant = Luxor.RGB{Float64}(0.347677,0.199863,0.085069)
     leaderline::Bool = true
+    collision_free::Bool = false
 end
 
 

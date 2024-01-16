@@ -94,14 +94,18 @@ function plot_label_bounding_box(l::LabelPaperSpace; noplot = false, plot_guides
             text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em);  halign = l.halign)
         end
         if plot_guides
-            box(bb, :stroke)
-            # 'fixed point', where the uncut leader points.
-            circle(pointat + offs, fs / 5, :stroke)
-            # offset radius, which help understand how offset modifiers work.
-            # Modifiers are l.halign and l.offsetbelow.
-            circle(l.x, l.y, hypot(l.offset...), :stroke)
-            # text anchor
-            circle(Point(xte, yte) + (δxalign, 0), fs / 5, :stroke)
+            @layer begin
+                setline(getline() / 4)
+                setdash("dash")
+                box(bb, :stroke)
+                # 'fixed point', where the uncut leader points.
+                circle(pointat + offs, fs / 5, :stroke)
+                # offset radius, which help understand how offset modifiers work.
+                # Modifiers are l.halign and l.offsetbelow.
+                circle(l.x, l.y, hypot(l.offset...), :stroke)
+                # text anchor
+                circle(Point(xte, yte) + (δxalign, 0), fs / 5, :stroke)
+            end
         end
     end
     # Revert Cairo state

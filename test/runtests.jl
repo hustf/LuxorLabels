@@ -3,17 +3,20 @@ ENV["JULIA_DEBUG"] = "LuxorLabels"
 
 function run_all_tests()
     @testset "unit" begin
-       include("test_unit.jl")
+       include("t1_unit.jl")
     end
     @testset "line" begin
-        include("test_line.jl")
+        include("t2_line.jl")
     end
     @testset "labels" begin
-        include("test_interfaces.jl")
+        include("t3_interfaces.jl")
     end
 
     @testset "random circle" begin
-        include("test_random_circle.jl")
+        include("t4_random_circle.jl")
+    end
+    @testset "collision free labels" begin
+        include("t5_collision_free.jl")
     end
 end
 

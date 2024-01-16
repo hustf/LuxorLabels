@@ -23,7 +23,7 @@ cb = BoundingBox(Point(-10, -20), pts[end] + (50, 0))
 setcolor("blue")
 box(cb, :dash)
 circle(0, 0, 10, :stroke)
-snapshot(;fname = "test_line_1.svg", cb)
+snapshot(;fname = "t2_line_1.svg", cb)
 
 # To avoid overlaps, we must specify a function
 # that returns a bounding box, and which accepts
@@ -58,7 +58,7 @@ bbs = labels_broadcast_plotfunc(bb_of_simple_label, labels)
 cb = foldr(+, bbs)
 setcolor("blue")
 circle(0, 0, 10, :stroke)
-snapshot(;fname = "test_line_2.svg", cb)
+snapshot(;fname = "t2_line_2.svg", cb)
 
 Drawing(NaN, NaN, :rec)
 background("salmon")
@@ -72,6 +72,6 @@ it, bbs = label_prioritized_at_given_offset(; f = bb_of_simple_label, labels)
 cb = foldr(+, bbs)
 setcolor("blue")
 circle(0, 0, 10, :stroke)
-snapshot(;fname = "test_line_3.svg", cb)
+snapshot(;fname = "t2_line_3.svg", cb)
 # Cleanup
 @test Luxor.finish()

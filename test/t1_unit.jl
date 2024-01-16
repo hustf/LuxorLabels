@@ -12,7 +12,7 @@ using Luxor: background, setcolor, snapshot, finish
     @test tes == ["abc", "def"]
 
     tes = labels_broadcast_plotfunc(foo, [LabelPaperSpace(;txt = "abc")])
-    @test tes == ["""LabelPaperSpace("abc", 1.0, 0.0, 0.0, :left, Point(-39.0, 52.0), 22.0, true, RGB{Float64}(0.342992,0.650614,0.772702), RGB{Float64}(0.347677,0.199863,0.085069), true)"""]
+    @test tes == ["LabelPaperSpace(\"abc\", 1.0, 0.0, 0.0, :left, Point(-39.0, 52.0), 22.0, true, RGB{Float64}(0.342992,0.650614,0.772702), RGB{Float64}(0.347677,0.199863,0.085069), true, false)"]
 
     fi(a; kw = "nokw") = string(a) * " " * kw
     tes = labels_broadcast_plotfunc(fi, ["abc", "def"])
@@ -50,22 +50,22 @@ end
     l = LabelPaperSpace()
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb = bb
-    snapshot(;cb, fname = "test_unit_1.svg")
+    snapshot(;cb, fname = "t1_unit_1.svg")
 
     l = LabelPaperSpace(;offsetbelow = false)
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
-    snapshot(;cb, fname = "test_unit_2.svg")
+    snapshot(;cb, fname = "t1_unit_2.svg")
 
     l = LabelPaperSpace(halign = :right)
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
-    snapshot(;cb, fname = "test_unit_3.svg")
+    snapshot(;cb, fname = "t1_unit_3.svg")
 
     l = LabelPaperSpace(halign = :right, offsetbelow = false)
     bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
-    snapshot(;cb, fname = "test_unit_4.svg")
+    snapshot(;cb, fname = "t1_unit_4.svg")
     @test true
 end
 
