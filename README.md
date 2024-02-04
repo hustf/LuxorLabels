@@ -33,7 +33,7 @@ The user interface functions all take the same list of keyword arguments. They c
      The function returns information about which (if any) were dropped.
   - `all` means: Plot all labels
   - `at given offset`: Don't try to find the best offset direction.
-  - `optimize diagonal offset`: If labels overlap, flip offset diagonally (a 2-satisfiability problem). Often the best choice since leader lines remain parallel.
+  - `optimize diagonal offset`: If labels overlap, flip offset diagonally (a 2-satisfiability problem). Often the best choice since leader lines remain parallel (looking good).
   - `optimize vertical offset`: If  labels overlap, flip  vertically.
   - `optimize horizontal offset`: Good for placing labels around a vertical line.
   - `optimize offset`: Text offset to any quadrant. A 4-satisfiability problem, slow, and often produces less readable output since leader lines (if enabled) are not parallel.
@@ -59,7 +59,7 @@ The user interface functions all take the same list of keyword arguments. They c
 ## Tweak how labels look using keywords
 
 Keywords are used to generate labels data. See inline docs for `LabelPaperSpace` and the default 
-plotting function, `plot_label_bounding_box`.
+plotting function, `plot_label_return_bb`.
 
 Most keywords are similar to Luxor / Cairo's `text` functionality. 
 
@@ -67,8 +67,17 @@ The `prominence`property affects how labels are prioritized, and their font size
 `prominence = 1.0` is used for the most important labels. When labels are dropped
 because of overlap, these are the last to be dropped.
 
-You can also specify your own label plotting function, for example by tweaking `plot_label_bounding_box`.  To be useful with this package, it should output a bounding box as
+You can also specify your own label plotting function, for example by tweaking `plot_label_return_bb`.  To be useful with this package, it should output a bounding box as
 well as graphics.
+
+## Tweak label placement optimization 
+
+Restrain a label from flipping by setting `fixpos`. See `PosEnum`
+
+Prevent a label from interaction with others by setting `collision_free`.
+
+Identiy problematic interactions by setting `ENV["JULIA_DEBUG"] = "LuxorLabels"`
+
 
 ## Other examples
 

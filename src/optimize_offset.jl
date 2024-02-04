@@ -41,23 +41,12 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     @variable(model, c[1:n, direction_nos], Bin)
     # Each label i must have exactly one offset value j.
     # Each element of the row vector c[i, :] must take exactly one value
-    for i in 1:n
+    for (i, lab) in zip(1:n, labels)
         @constraint(model, sum(c[i, :]) == 1)
-        #=
-        if ! labels[i].collision_free
-            @constraint(model, sum(c[i, :]) == 1)
-        else
-            for dirno in direction_nos
-                if dirno == 1
-                    @constraint(model, c[i, dirno] == 1)
-                else
-                    @constraint(model, c[i, dirno] == 0)
-                end
-            end
+        if lab.fixpos !== posfree
+            fixtopos = Int(lab.fixpos)
+            @constraint(model, c[i, fixtopos] == 1)
         end
-        =#
-        # TODO note: An alternative approach to find the 'most problematic' label 
-        # would be to optimize after adding each constraint. That's not what we do now. 
     end
     # Some positions possibly crashes. Loop over labels and offset directions '(label-direction)'
     # to add one constraint for each possible crash. Each constraint is symmetrical,
@@ -76,27 +65,52 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
                 for j2 in direction_nos
                     # Boundary boxes potentially colliding text and label anchor
                     bb2, bbp2 = boundary_box_of_label_offset_at_direction_no(f, labels[i2], j2; kwds...)
-                    if is_colliding(bb1, bb2) || is_colliding(bb1, bbp2) || is_colliding(bbp1, bb2)
-                        constraint_ref = @constraint(model, c[i1, j1] + c[i2, j2] <= 1)
-                        store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i1)
-                        store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i2)
-                        @debug "constraint  ($i1, $j1 ) <=> ($i2, $j2)" maxlog = 500
-                    end
-                    #=
-                    # Any label can be marked as collision-free!
+                    # DEBUG
+                    # We discovered that c[121,3] + c[122,3] <= 1, and wanted a manual  check:
+                    #if i2 == 122 && j2 == 3 && i1 == 121 && j1 == 3 
+                    #    println(i1, " ", j1, " BoundingBox(", bb1.corner1, ", ", bb1.corner2, ")")
+                    #    println(i2, " ", j2, " BoundingBox(", bb2.corner1, ", ", bb2.corner2, ")")
+                    #end
+                    #
+                    #
+                    # Any label can be marked as collision-free while optimizing parameters!
+                    # Typical usage: Set one or a few labels collision free, and leave others as default. 
+                    #
+                    # txt = ["1", "2", "3", "4"]
+                    # x = [9.0, 18.0, 9.0, 18.0]
+                    # y = [9.0, 9.0, 18.0, 18.0]
+                    # prominence = 3
+                    # collision_free = Bool[0, 0, 1, 0]
+                    # it, bbs = label_all_optimize_diagonal_offset(;txt, prominence, x, y, collision_free, plot_guides = true)
+                    # snapshot(;cb = foldr(+, bbs))
                     if ! (labels[i1].collision_free || labels[i2].collision_free)
-                        if is_colliding(bb1, bb2) || is_colliding(bb1, bbp2) || is_colliding(bbp1, bb2)
+                        if is_colliding(bb1, bb2) || is_colliding(bb1, bbp2) || is_colliding(bbp1, bb2) || is_colliding(bbp1, bbp2)
                             constraint_ref = @constraint(model, c[i1, j1] + c[i2, j2] <= 1)
                             store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i1)
                             store_constraintref_in_dict!(constraint_by_label_index, constraint_ref, i2)
-                            @debug "constraint  ($i1, $j1 ) <=> ($i2, $j2)" maxlog = 500
                         end
                     end
-                    =#
                 end
             end
         end
     end
+    #
+    @debug begin
+        # Summarize constraints, based on constraint_by_label_index
+        pad_to_exact_length = (s, l) -> lpad(length(s) > l ? s[1:nextind(s, 0, l)-1] : s, l)
+        msg = "Collision constraints table\n"
+        for ke in sort(collect(keys(constraint_by_label_index)))
+            s = pad_to_exact_length(labels[ke].txt, 40)
+            msg *= s * "  " * pad_to_exact_length(string(ke), 3) * "    "
+            va = constraint_by_label_index[ke]
+            for cn in va
+            msg *= "  $(cn)"
+            end
+            msg *= "\n"
+        end
+        msg
+    end
+    #
     # Since we just need to find a feasible solution, no objective function is defined.
     # TODO Consider: Prefer the solution with most offsets in a preferred direction.
     # TODO Consider: define callbacks and possibly unrestrain the most difficult constraint.
@@ -133,13 +147,16 @@ function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_lab
         @assert num_constraints(model; count_variable_in_set_constraints = false) > n
         optimize!(model)
         lastsoltime = MathOptInterface.get(model, MathOptInterface.SolveTimeSec())
-        @debug "Last solve time [s], constraints, labels:" lastsoltime nconstr n
         # Check if the model has a solution
-        @debug termination_status(model)
         if termination_status(model) == MathOptInterface.OPTIMAL
+            @debug "$(termination_status(model)), last solve time $lastsoltime s, nodes = $n, constraints = $nconstr" 
             break
-        else
+        elseif termination_status(model) == MathOptInterface.INFEASIBLE
+            @debug termination_status(model) "Constraints, labels:" lastsoltime nconstr n
             drop_constraints_for_most_problematic_label!(model, constraint_by_label_index, labels)
+        else
+            @debug "Last solve time [s], constraints, labels:" lastsoltime nconstr n
+            throw("Unencountered termination status: $(termination_status(model))")
         end
         @assert tries < 10000 # May be increased if beneficial...
     end
@@ -180,10 +197,10 @@ LabelPaperSpace(txt                    = "1",
                 leaderline             = false)
 julia> using LuxorLabels: boundary_box_of_label_offset_at_direction_no
 
-julia> boundary_box_of_label_offset_at_direction_no(plot_label_bounding_box, l, 1)
+julia> boundary_box_of_label_offset_at_direction_no(plot_label_return_bb, l, 1)
 ( ⤡ Point(-30.0, 52.0) : Point(-24.0, 68.536),  ⤡ Point(10.0, 10.0) : Point(10.0, 10.0))
 
-julia> boundary_box_of_label_offset_at_direction_no(plot_label_bounding_box, l, 2)
+julia> boundary_box_of_label_offset_at_direction_no(plot_label_return_bb, l, 2)
 ( ⤡ Point(-30.0, -52.0) : Point(-24.0, -35.464),  ⤡ Point(10.0, 10.0) : Point(10.0, 10.0))
 ```
 """
@@ -206,7 +223,7 @@ function label_offset_at_direction_no(label::LabelPaperSpace, j; debug = false)
     l.offsetbelow = offsetbelow
     l
 end
-function label_offset_at_direction_no!(labels, i::Int64, j::Int64; debug = true)
+function label_offset_at_direction_no!(labels, i::Int64, j::Int64; debug = false)
     offsetbelow, halign = direction_tuple(labels[i], j; debug)
     labels[i].halign = halign
     labels[i].offsetbelow = offsetbelow
@@ -292,7 +309,6 @@ function label_index_to_drop_constraints_for(constraint_by_label_index::Dict{Int
         v = get(constraint_by_label_index, i, Vector{T}())
         length(v) == max_no_constraints
     end
-    # debug @show n all constrained max_prom_val with_max_prominence max_no_constraints with_max_no_constraints
     # d) Label index to drop constraints for
     drop_index = with_max_no_constraints[end]
     @debug "Drop constraints candidate: $(drop_index) $(labels[drop_index].txt)"

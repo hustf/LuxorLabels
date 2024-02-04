@@ -11,12 +11,17 @@ function run_all_tests()
     @testset "labels" begin
         include("t3_interfaces.jl")
     end
-
     @testset "random circle" begin
         include("t4_random_circle.jl")
     end
     @testset "collision free labels" begin
         include("t5_collision_free.jl")
+    end
+    @testset "font family" begin
+        include("t6_font_family.jl")
+    end
+    @testset "fixpos" begin
+        include("t8_fixpos.jl")
     end
 end
 

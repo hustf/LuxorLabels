@@ -12,14 +12,23 @@ using Luxor: background, setcolor, snapshot, finish
     @test tes == ["abc", "def"]
 
     tes = labels_broadcast_plotfunc(foo, [LabelPaperSpace(;txt = "abc")])
-    @test tes == ["LabelPaperSpace(\"abc\", 1.0, 0.0, 0.0, :left, Point(-39.0, 52.0), 22.0, true, RGB{Float64}(0.342992,0.650614,0.772702), RGB{Float64}(0.347677,0.199863,0.085069), true, false)"]
-
+    @test tes == ["LabelPaperSpace(\"abc\", 1.0, 0.0, 0.0, Point(-39.0, 52.0), :left, true, posfree, RGB{Float64}(0.342992,0.650614,0.772702), RGB{Float64}(0.347677,0.199863,0.085069), true, false, 22.0, \"\")"]
     fi(a; kw = "nokw") = string(a) * " " * kw
     tes = labels_broadcast_plotfunc(fi, ["abc", "def"])
     @test tes == ["abc nokw", "def nokw"]
-
+    # A single keyword broadcast to each
     tes = labels_broadcast_plotfunc(fi, ["abc", "def"]; kw = "kw")
     @test tes == ["abc kw", "def kw"]
+    # Two keywords broadcast to each
+    function fa(a; kw...)
+        string(a) * " " * join(map(collect(kw)) do (k, v)
+            string(k) * " = " * string(v)
+        end, "   ")
+    end
+    tes = labels_broadcast_plotfunc(fa, ["abc", "def"]; kw = "kw", kw1 = "kw1")
+    @test tes == ["abc kw = kw   kw1 = kw1", "def kw = kw   kw1 = kw1"]
+    # One keyword with different values for each label
+    @test_throws ArgumentError labels_broadcast_plotfunc(fa, ["abc", "def"]; kw = ["ABC", "DEF"])
 end
 
 @testset "is_colliding" begin
@@ -45,25 +54,25 @@ end
     @test wrap_to_lines("Hareid ungdomsskule fv. 61") == "Hareid \nungdomsskule\nfv. 61"
 end
 
-@testset "plot_label_bounding_box" begin
+@testset "plot_label_return_bb" begin
     Drawing(NaN, NaN, :rec)
     l = LabelPaperSpace()
-    bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
+    bb = plot_label_return_bb(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb = bb
     snapshot(;cb, fname = "t1_unit_1.svg")
 
     l = LabelPaperSpace(;offsetbelow = false)
-    bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
+    bb = plot_label_return_bb(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
     snapshot(;cb, fname = "t1_unit_2.svg")
 
     l = LabelPaperSpace(halign = :right)
-    bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
+    bb = plot_label_return_bb(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
     snapshot(;cb, fname = "t1_unit_3.svg")
 
     l = LabelPaperSpace(halign = :right, offsetbelow = false)
-    bb = plot_label_bounding_box(l; noplot = false, plot_guides = true, two_word_lines = true)
+    bb = plot_label_return_bb(l; noplot = false, plot_guides = true, two_word_lines = true)
     cb += bb
     snapshot(;cb, fname = "t1_unit_4.svg")
     @test true

@@ -18,7 +18,7 @@
 - Return all indexes
 - Return bounding boxes of all labels.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function indexes_and_bbs_all_at_given_offset(; kwds...)
     check_kwds(;kwds...)
@@ -43,7 +43,7 @@ end
 - Return prioritized indexes
 - Return bounding boxes of prioritized labels.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function indexes_and_bbs_prioritized_at_given_offset(; kwds...)
     check_kwds(;kwds...)
@@ -65,7 +65,7 @@ end
 
 - Drop labels overlapped by others based on prominence and order.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_prioritized_at_given_offset(; kwds...)
     check_kwds(;kwds...)
@@ -86,7 +86,7 @@ end
 - Optimize offset: up or down.
 - Drop labels overlapped by others based on prominence and order.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_prioritized_optimize_vertical_offset(; kwds...)
     check_kwds(;kwds...)
@@ -108,7 +108,7 @@ end
 - Optimize offset: left or right.
 - Drop labels overlapped by others based on prominence and order.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_prioritized_optimize_horizontal_offset(; kwds...)
     check_kwds(;kwds...)
@@ -131,7 +131,7 @@ end
 
 This works by flipping offset direction 180° for the alternative placement.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_prioritized_optimize_diagonal_offset(; kwds...)
     check_kwds(;kwds...)
@@ -154,7 +154,7 @@ end
 - Optimize offset up -down, right - left or diagonally.
 - Drop labels overlapped by others based on prominence and order.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_prioritized_optimize_offset(; kwds...)
     check_kwds(;kwds...)
@@ -175,7 +175,7 @@ end
 - Most simple.
 - Plot all labels at default / specified offset.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_all_at_given_offset(;  kwds...)
     check_kwds(;kwds...)
@@ -198,7 +198,7 @@ end
 - Most powerful / abstract.
 - Optimize offset: up or down.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_all_optimize_vertical_offset(; kwds...)
     check_kwds(;kwds...)
@@ -220,7 +220,7 @@ end
 - Most powerful / abstract.
 - Optimize offset: left or right.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_all_optimize_horizontal_offset(; kwds...)
     check_kwds(;kwds...)
@@ -242,7 +242,7 @@ end
 - Most powerful / abstract.
 - Optimize offset: left or right.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_all_optimize_diagonal_offset(; kwds...)
     check_kwds(;kwds...)
@@ -264,7 +264,7 @@ end
 
 - Optimize offset up, down, right, left.
 
-See `LabelPaperSpace` and `plot_label_bounding_box` regarding keywords.
+See `LabelPaperSpace` and `plot_label_return_bb` regarding keywords.
 """
 function label_all_optimize_offset(; kwds...)
     check_kwds(;kwds...)
@@ -282,7 +282,7 @@ end
 
 
 """
-    label_general(; f::Function = plot_label_bounding_box,
+    label_general(; f::Function = plot_label_return_bb,
     kwds...)
     label_general(f::Function, labels::Vector{LabelPaperSpace};
             optim_vert = true,
@@ -308,16 +308,16 @@ This is the general function behind these more user-friendly interfaces:
 - `label_prioritized_optimize_diagonal_offset`
 - `label_prioritized_optimize_offset`
 
-Other keywords are passed on to the plotting function `f` = `plot_label_bounding_box`,
+Other keywords are passed on to the plotting function `f` = `plot_label_return_bb`,
 see that documentation.
 
 Note that `plot` = true is mostly equivalent to `noplot` = false.
 It is set by `indexes_and_bbs_all_at_given_offset` and `indexes_and_bbs_prioritized_at_given_offset`.
 
-`noplot` is a plotting function keyword defined by `plot_label_bounding_box`.
+`noplot` is a plotting function keyword defined by `plot_label_return_bb`.
 Its use takes a little more time, but does not exclude drawing guides.
 """
-function label_general(; f::Function = plot_label_bounding_box,
+function label_general(; f::Function = plot_label_return_bb,
     kwds...)
     check_kwds(;kwds...)
     # Make a vector of labels, using the label - relevant keywords.
