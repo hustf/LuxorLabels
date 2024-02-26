@@ -202,8 +202,15 @@ julia> labels_broadcast_plotfunc(fi, ["abc", "def"]; kw = "kw")
 """
 function labels_broadcast_plotfunc(f, labels; kwds...)
     check_kwds(;kwds...)
+    # We don't want leaders overlapping background (semi-transparent) boxes.
+    # So first plot all leaders, then all text.
     if isempty(kwds)
-        map(f, labels)
+        map(labels) do l
+            f(l; suppress = :text)
+        end
+        map(labels) do l
+            f(l; suppress = :leader)
+        end
     else
         hasvector = any(map(values(kwds)) do v
             typeof(v) <: Vector 
@@ -213,7 +220,10 @@ function labels_broadcast_plotfunc(f, labels; kwds...)
             throw(ArgumentError("It seems you passed a vector valued keyword! We have not implemented that yet..."))
         else
             map(labels) do l
-                f(l; kwds...)
+                f(l; suppress = :text, kwds...)
+            end
+            map(labels) do l
+                f(l; suppress = :leader, kwds...)
             end
         end
     end

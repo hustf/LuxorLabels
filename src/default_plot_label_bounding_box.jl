@@ -1,19 +1,23 @@
 """
-    plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = true, two_word_lines = true)
+    plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = false, 
+        two_word_lines = true, suppress = :none)
     ---> BoundingBox
 
 Plot the label (optional) with offset, return the bounding box of the label.
 
 # Keyword arguments / defaults
 
-  - noplot = false:        `true` returns the text bounding box without leaving any marks
-  - plot_guides = false:   `true` draws bounding box, offset radius from label anchor, and text anchor
-  - two_word_lines = true: `true` wraps text to two words per lines
+  - noplot = false         `true` returns the text bounding box without leaving any marks
+  - plot_guides = false    `true` draws bounding box, offset radius from label anchor, and text anchor
+  - two_word_lines = true  `true` wraps text to two words per lines
+  - suppress = :none       :text plots the leader only. :leader plots the text only.
 
 Note that the bounding box only includes letters, not the leader line. For optimization of
 placement, it is recommended that the calling context also defines a small bounding box around the label anchor.
 """
-function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = false, two_word_lines = true)
+function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = false, two_word_lines = true,
+    suppress = :none)
+    @assert suppress ∈ [:none, :leader, :text]
     # We prefer max two words per line in map labels
     ftext = two_word_lines ? wrap_to_lines(l.txt) : l.txt
     # We'll use the 'toy' text, so need to split text into lines.
@@ -54,22 +58,25 @@ function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = 
             l.collision_free && setopacity(0.4)
             # Show some additional boxes and lines if plot_guides is true
             _plot_guides(plot_guides, l, bb, xb, yb, nlins, em, fs, pointat, offs, xte, yte, δxalign, w)
-            # Background white transparent
-            @layer begin
-                sethue("white")
-                setopacity(0.6)
-                box(bb, :fill)
+            if suppress != :text
+                # Background white transparent
+                @layer begin
+                    sethue("white")
+                    setopacity(0.6)
+                    box(bb, :fill)
+                end
+                # Text shadow
+                sethue(l.shadowcolor)
+                for i in eachindex(lins)
+                    text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em) + shadowoffset; halign = l.halign)
+                end
             end
-            # Text shadow
-            sethue(l.shadowcolor)
-            for i in eachindex(lins)
-                text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em) + shadowoffset; halign = l.halign)
-            end
-            if l.leaderline
+            if l.leaderline && suppress !== :leader
                 @layer begin
                     setline(1.0)
                     setdash("shortdashed")
                     # Leader line shadow
+                    sethue(l.shadowcolor)
                     line(pointat + shadowoffset,  leaderend + shadowoffset, :stroke)
                     sethue(l.textcolor)
                     # Leader line
@@ -78,8 +85,10 @@ function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = 
             end
             # Text
             sethue(l.textcolor)
-            for i in eachindex(lins)
-                text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em);  halign = l.halign)
+            if suppress != :text
+                for i in eachindex(lins)
+                    text(lins[i], Point(xte, yte) + (δxalign, (i - 1) * em);  halign = l.halign)
+                end
             end
         end
     end
