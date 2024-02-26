@@ -2,8 +2,8 @@ module LuxorLabels
 import Luxor
 import Base: show
 using Luxor: BoundingBox, boundingboxesintersect, boxdiagonal, Point, +,
-    @layer, fontsize, fontface, textextents, sethue, text, setdash, line, box,
-    circle, getline, setline, setopacity
+    @layer, fontsize, fontface, textextents, sethue, text, setdash, line,
+    circle, getline, setline, setopacity, box
 import JuMP
 using GLPK
 import GLPK.MathOptInterface

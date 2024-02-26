@@ -3,7 +3,7 @@
 # This uses functions from t3_interfaces.jl
 include("t3_interfaces.jl")
 @assert @isdefined generate_labelsdata_grid
-# Prepare a 2x2 small grid of labels where 3 and 4 are too close for comfort.
+# Prepare a rectangle of labels where 3 and 4 are too close for comfort.
 #
 txt, prominence, x, y, textcolor, shadowcolor = generate_labelsdata_grid(; rws = 1, cols = 4, dx = 6)
 Drawing(NaN, NaN, :rec); background(browncyan[5])
@@ -20,6 +20,7 @@ snapshot(;cb = foldr(+, bbs),  fname = "t8_fixedpos_1.svg")
 #
 # Let us fix 4 to the default, unflipped position!
 Drawing(NaN, NaN, :rec); background(browncyan[5])
+# PosEnum enumerations
 fixpos = [posfree, posfree, posfree, keep]
 it, bbs = label_prioritized_optimize_diagonal_offset(;txt, prominence, x, y, textcolor, shadowcolor, fixpos)
 snapshot(;cb = foldr(+, bbs),  fname = "t8_fixedpos_2.svg")

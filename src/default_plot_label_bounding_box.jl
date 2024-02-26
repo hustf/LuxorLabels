@@ -28,7 +28,7 @@ function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = 
     fs = l.fontsize_prominence_1*  ( 1 - 0.182 * (l.prominence - 1))
     em = fs * 13 / 11
     # Find the size of the text box, considering all lines.
-    # We read this from Cairo, so need to change Cairo state temporarily.
+    # We read this from Cairo, so need to change Cairo font state temporarily.
     Luxor.gsave()
     if ! isempty(l.fontfamily)
         fontface(l.fontfamily)
@@ -47,11 +47,13 @@ function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = 
             w = wi
         end
     end
-    # Variables commented in '_label_geometry'.
+    # Variables are commented in '_label_geometry'.
     bb, pointat, xte, yte, δxalign, offs, pointat, leaderend = _label_geometry(l.halign, l.offsetbelow, l.offset, xb, yb, l.x, l.y, nlins, em, w)
-    # This label function is typically called once without plotting
-    # to retrieve which parts it would cover.
-    # If that's okay, it is called again with this keyword:
+    # This label function is typically called thrice:
+    # 1) Once without plotting, to retrieve which parts it would cover. Repeated if placement optimization is required.
+    #    Using the 'noplot' keyword.
+    # 2) Once, but with text suppressed. Because we want all leaders to appear below all text. Using the 'suppressed' keyword.
+    # 3) Thirdly, plotting text but not leaders. Using the 'suppressed' keyword.
     if ! noplot
         @layer begin
             # Collision_free is intended for use while fixing layouts. We make these labels transparent, which will not look good on final plots.
@@ -61,9 +63,15 @@ function plot_label_return_bb(l::LabelPaperSpace; noplot = false, plot_guides = 
             if suppress != :text
                 # Background white transparent
                 @layer begin
+                    # CONSIDER: We have no way to control this box with keywords. 
+                    # Implement it when needed once!
                     sethue("white")
                     setopacity(0.6)
-                    box(bb, :fill)
+                    let
+                        last_line_reduction_factor =  13 / 11 - 1
+                        cornerrad = 0.2 * em
+                        box(BoundingBox(bb[1], bb[2] + (0, - last_line_reduction_factor * em )), cornerrad, action = :fill)
+                    end
                 end
                 # Text shadow
                 sethue(l.shadowcolor)

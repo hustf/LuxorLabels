@@ -15,7 +15,7 @@ end
 labels = labels_paper_space(;txt, x, prominence)
 
 # A very simple label plot, doesn't return anything interesting
-f(label) = text(label.txt, label.x, label.y)
+f(label; suppress = :none) = text(label.txt, label.x, label.y)
 Drawing(NaN, NaN, :rec)
 background("salmon")
 pts = labels_broadcast_plotfunc(f, labels)
@@ -27,8 +27,8 @@ snapshot(;fname = "t2_line_1.svg", cb)
 
 # To avoid overlaps, we must specify a function
 # that returns a bounding box, and which accepts
-# keyword 'noplot'
-function bb_of_simple_label(l; noplot = false)
+# keywords 'noplot' and 'suppress'
+function bb_of_simple_label(l; noplot = false, suppress = :none)
     # For single text lines only
     if ! noplot
         text(l.txt, l.x, l.y)

@@ -23,6 +23,9 @@ function run_all_tests()
     @testset "fixpos" begin
         include("t8_fixpos.jl")
     end
+    @testset "rbox" begin
+        include("t9_rbox.jl")
+    end
 end
 
 # This is copied directly from Luxor.

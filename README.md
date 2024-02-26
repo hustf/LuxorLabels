@@ -28,6 +28,7 @@ begin
 The user interface functions all take the same list of keyword arguments. They convey 'what to do' in the function names, and use keywords to define the label content.
 
 ## User interface terms
+These terms are used as part of function names.
 
   - `prioritized` means: Drop labels that can't be plotted without overlapping other labels.
      The function returns information about which (if any) were dropped.
@@ -41,6 +42,8 @@ The user interface functions all take the same list of keyword arguments. They c
 
 
 ## User interface functions
+
+The terms above are combined into function names. We thought this might be easier to remember than a whole lot of new keyword combinations. It works for us. 
 
 - `label_prioritized_at_given_offset`
 - `label_prioritized_optimize_vertical_offset`
@@ -67,16 +70,15 @@ The `prominence`property affects how labels are prioritized, and their font size
 `prominence = 1.0` is used for the most important labels. When labels are dropped
 because of overlap, these are the last to be dropped.
 
-You can also specify your own label plotting function, for example by tweaking `plot_label_return_bb`.  To be useful with this package, it should output a bounding box as
-well as graphics.
+You can also specify your own label plotting function, for example by copying and tweaking the default `plot_label_return_bb`.  To be useful with label optimization, it should output a bounding box as well as graphics. Your function needs to accept the keyword 'suppress', but does not need to use it.
 
 ## Tweak label placement optimization 
 
-Restrain a label from flipping by setting `fixpos`. See `PosEnum`
+Restrain a label from flipping by setting `fixpos`. See `PosEnum`.
 
 Prevent a label from interaction with others by setting `collision_free`.
 
-Identiy problematic interactions by setting `ENV["JULIA_DEBUG"] = "LuxorLabels"`
+Identiy problematic label interactions by setting `ENV["JULIA_DEBUG"] = "LuxorLabels"`
 
 
 ## Other examples
@@ -101,4 +103,4 @@ Example of a default label in all four (default) offset positions. Keyword `plot
 
 The label placement optimization uses [JuMP.jl](https://github.com/jump-dev/JuMP.jl) with a solver from GNU project [GLPK.jl](https://github.com/jump-dev/GLPK.jl).
 
-You also need to use [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl).
+You also need to use [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl), of course.

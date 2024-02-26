@@ -3,17 +3,16 @@ using LuxorLabels
 using LuxorLabels: labels_broadcast_plotfunc, is_colliding, non_overlapping_indexes_by_order,
     non_overlapping_indexes_by_prominence_then_order, label_offset_at_direction_no!, label_offset_at_direction_no
 import Luxor
-using Luxor: BoundingBox, boundingboxesintersect, O, Point, Drawing, circle, box
+using Luxor: BoundingBox, boundingboxesintersect, O, Point, Drawing, circle
 using Luxor: background, setcolor, snapshot, finish
 
 @testset "labels_broadcast_plotfunc" begin
-    foo(a) = string(a)
+    foo(a; kws...) = string(a)
     tes = labels_broadcast_plotfunc(foo, ["abc", "def"])
     @test tes == ["abc", "def"]
-
     tes = labels_broadcast_plotfunc(foo, [LabelPaperSpace(;txt = "abc")])
     @test tes == ["LabelPaperSpace(\"abc\", 1.0, 0.0, 0.0, Point(-39.0, 52.0), :left, true, posfree, RGB{Float64}(0.342992,0.650614,0.772702), RGB{Float64}(0.347677,0.199863,0.085069), true, false, 22.0, \"\")"]
-    fi(a; kw = "nokw") = string(a) * " " * kw
+    fi(a; kw = "nokw", kws...) = string(a) * " " * kw
     tes = labels_broadcast_plotfunc(fi, ["abc", "def"])
     @test tes == ["abc nokw", "def nokw"]
     # A single keyword broadcast to each
@@ -26,7 +25,7 @@ using Luxor: background, setcolor, snapshot, finish
         end, "   ")
     end
     tes = labels_broadcast_plotfunc(fa, ["abc", "def"]; kw = "kw", kw1 = "kw1")
-    @test tes == ["abc kw = kw   kw1 = kw1", "def kw = kw   kw1 = kw1"]
+    @test tes == ["abc suppress = leader   kw = kw   kw1 = kw1", "def suppress = leader   kw = kw   kw1 = kw1"]
     # One keyword with different values for each label
     @test_throws ArgumentError labels_broadcast_plotfunc(fa, ["abc", "def"]; kw = ["ABC", "DEF"])
 end
