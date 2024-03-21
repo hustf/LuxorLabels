@@ -31,7 +31,7 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     n = length(labels)
     # The number of possible offset directions for each label
     m = length(direction_nos)
-    @debug "Bulding model. Size estimate: Labels n = $n, positions for each label m = $m.
+    @debug "Adding labels to model. Size estimate: Labels n = $n, positions for each label m = $m.
             Number of combinations before adding overlap constraints: mⁿ = $(BigInt(m)^n)"
     # We have a vector of labels. For each assign one row of
     # binary variables. There are m columns in each row.
@@ -54,17 +54,34 @@ function optimize_offset_direction!(labels, f, direction_nos; kwds...)
     #
     # A container for storing constraints, because we may need to relieve some constraints,
     # i.e. we may need to allow some labels crashing.
+    @debug "Collecting boundary boxes"
+    mbb = Matrix{BoundingBox}(UndefInitializer(), n, maximum(direction_nos))
+    mbbp = Matrix{BoundingBox}(UndefInitializer(), n, maximum(direction_nos))
+    for i in 1:n
+        for j in direction_nos
+            bb, bbp = boundary_box_of_label_offset_at_direction_no(f, labels[i], j; kwds...)
+            mbb[i,j] = bb
+            mbbp[i,j] = bbp
+        end
+    end
+
+
+    @debug "Constraining model."
     constraint_by_label_index = Dict{Int64, Vector{JuMP.ConstraintRef}}()
     for i1 in 1:n
         for j1 in direction_nos
             # Boundary boxes of text and label anchor
-            bb1, bbp1 = boundary_box_of_label_offset_at_direction_no(f, labels[i1], j1; kwds...)
+            #bb1, bbp1 = boundary_box_of_label_offset_at_direction_no(f, labels[i1], j1; kwds...)
+            bb1 = mbb[i1, j1]
+            bbp1 = mbbp[i1, j1]
             for i2 in 1:n
                 # Skip along because of the constraint symmetry described above.
                 i2 <= i1 && continue
                 for j2 in direction_nos
                     # Boundary boxes potentially colliding text and label anchor
-                    bb2, bbp2 = boundary_box_of_label_offset_at_direction_no(f, labels[i2], j2; kwds...)
+                    #bb2, bbp2 = boundary_box_of_label_offset_at_direction_no(f, labels[i2], j2; kwds...)
+                    bb2 = mbb[i2, j2]
+                    bbp2 = mbbp[i2, j2]
                     # DEBUG
                     # We discovered that c[121,3] + c[122,3] <= 1, and wanted a manual  check:
                     #if i2 == 122 && j2 == 3 && i1 == 121 && j1 == 3 
@@ -137,7 +154,7 @@ function iterate_to_solution_by_dropping_constraints(model, n, constraint_by_lab
     lastsoltime = NaN
     while true
         tries += 1
-        @debug "Optimizing model with " num_constraints(model; count_variable_in_set_constraints = false)
+        @debug "$tries Optimizing model with " num_constraints(model; count_variable_in_set_constraints = false)
         nconstr = num_constraints(model; count_variable_in_set_constraints = false)
         if nconstr > 500
             if m > 2
@@ -285,6 +302,7 @@ function label_index_to_drop_constraints_for(constraint_by_label_index::Dict{Int
     # b) Label with highest 'prominence' value (i.e. the least important label)
     # c) Label with the largest number of constraints.
     # d) Placed last of these.
+    # TODO: Maybe drop those interferring with anchor points first?
     n = length(labels)
     all = 1:n
     # a)
