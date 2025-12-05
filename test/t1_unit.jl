@@ -11,7 +11,7 @@ using Luxor: background, setcolor, snapshot, finish
     tes = labels_broadcast_plotfunc(foo, ["abc", "def"])
     @test tes == ["abc", "def"]
     tes = labels_broadcast_plotfunc(foo, [LabelPaperSpace(;txt = "abc")])
-    @test tes == ["LabelPaperSpace(\"abc\", 1.0, 0.0, 0.0, Point(-39.0, 52.0), :left, true, posfree, RGB{Float64}(0.342992,0.650614,0.772702), RGB{Float64}(0.347677,0.199863,0.085069), true, false, 22.0, \"\")"]
+    @test tes == ["LabelPaperSpace(\"abc\", 1.0, 0.0, 0.0, Point(-39.0, 52.0), :left, true, posfree, RGB{Float64}(0.342992, 0.650614, 0.772702), RGB{Float64}(0.347677, 0.199863, 0.085069), true, false, 22.0, \"\")"]
     fi(a; kw = "nokw", kws...) = string(a) * " " * kw
     tes = labels_broadcast_plotfunc(fi, ["abc", "def"])
     @test tes == ["abc nokw", "def nokw"]
